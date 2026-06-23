@@ -1,7 +1,7 @@
 var config = {
-  student_name: "YOUR NAME", // ie. John Doe
-  student_year_sem: "YOUR YEAR AND SEMESTER", // ie. Fall 2025
-  student_email: "YOUR EMAIL", // ie. jdoe@college.harvard.edu
+  student_name: "Claudia Márquez", // ie. John Doe
+  student_year_sem: "Summer 2026", // ie. Fall 2025
+  student_email: "mcm239@g.harvard.edu", // ie. jdoe@college.harvard.edu
 
   background_color: "#181818",
   text_color: "#dedede",
@@ -12,7 +12,7 @@ var config = {
   code_font_family: "Roboto Mono"
 };
 
-document.title = `${config.student_name}'s PS70 Website`;
+document.title = `${config.student_name}'s PHYS S-12 Website`;
 
 document.documentElement.style.setProperty(
   "--background-color",
