@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 :root {
   --secondary-background-color: color-mix(in srgb, var(--text-color) 8%, var(--background-color) 92%);
@@ -29,7 +28,7 @@ h1, h2, h3, p, b, ul, ol, pre, table {
 
 h1 {
   font-size: clamp(3rem, 4.5vw, 100rem);
-  font-weight: 900;
+  font-weight: 600;
 }
 
 h2 {
@@ -214,7 +213,7 @@ nav {
 
 nav a {
   font-size: clamp(1rem, 1.5vw, 100rem);
-  font-weight: 900;
+  font-weight: 300;
   font-style: italic;
   text-decoration: none;
 }
@@ -242,7 +241,7 @@ footer #contact-info {
 
 footer a {
   font-size: clamp(1rem, 1.5vw, 100rem);
-  font-weight: 400;
+  font-weight: 300;
   font-style: italic;
   text-decoration: none;
 }
@@ -250,7 +249,6 @@ footer a {
 /* Hero */
 
 #hero {
-  height: 70vh;
   padding: 0vh 7vw;
   display: flex;
   flex-direction: column;
@@ -259,7 +257,7 @@ footer a {
 }
 
 #hero h1 {
-  font-size: clamp(3.5rem, 8vw, 100rem);
+  font-size: clamp(3.5rem, 5vw, 100rem);
   font-weight: 700;
   margin-bottom: 3rem;
 }
