@@ -1,0 +1,132 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>See config.js</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./style.css">
+  </head>
+
+  <nav>
+    <a id="home" href="./index.html">Home</a>
+    <a href="./index.html#final-project">Work</a>
+    <a href="./about.html">About</a>
+  </nav>
+
+  <body>
+    <section class="blog">
+      <!-- 
+                                                                                                
+      █████▄  ██████ ▄████▄ ████▄    ██ ███  ██ ██████ ▄████▄   █████▄ ██████ ██     ▄████▄ ██     ██ 
+      ██▄▄██▄ ██▄▄   ██▄▄██ ██  ██   ██ ██ ▀▄██ ██▄▄   ██  ██   ██▄▄██ ██▄▄   ██     ██  ██ ██ ▄█▄ ██ 
+      ██   ██ ██▄▄▄▄ ██  ██ ████▀    ██ ██   ██ ██     ▀████▀   ██▄▄█▀ ██▄▄▄▄ ██████ ▀████▀  ▀██▀██▀  
+                                                                                                
+      -->
+      <h2>Read this before using this template!</h2>:
+
+      <ul>
+        <li>Make sure to update the config.js with your information and customization preferences.</li>
+        <li>Each folder corresponds to a weekly assignment.</li>
+        <li>Most HTML you'll edit for each assignment will be inside the <code>&lt;section class="blog"&gt;</code> tag.</li>
+        <li>If using VScode, install the "Live Preview" extension and use the "Go Live" button at the bottom right.</li> 
+        <li>VScode also has text-wrap, which may be helpful for HTML. Toggle it with alt + Z.</li> 
+      </ul>
+
+      <p>The rest is HTML boilerplate. Play around and see how each element corresponds to what appears on the website. It's really not that much more complicated than google docs!</p>
+
+      <h1>Heading 1</h1>
+      <h2>Heading 2</h2>
+      <h3>Heading 3</h3>
+      <p>Paragraph</p>
+      
+      <p>Click <a href="./placeholder_assets/example_download.3mf" download>here</a> to download a 3D model</p>
+      
+      <p>This is some <code>inline code</code>.</p>
+
+      <!-- Notice the lack of indentation. <pre> indicates "pre-formatted" text -->
+<pre><code>// This is an code block.
+Serial.print("Hello World!");
+</code></pre>
+
+      <ol>
+        <li>Ordered list item 1</li>
+        <li>Ordered list item 2</li>
+        <li>Ordered list item 3</li>
+      </ol>
+      
+      <ul>
+        <li>Unordered list item 1</li>
+        <li>Unordered list item 2</li>
+        <li>Unordered list item 3</li>
+      </ul>
+      
+      <table>
+        <tr>
+          <th>Column A</th>
+          <th>Column B</th>
+          <th>Column C</th>
+        </tr>
+        <tr>
+          <th>Cell 1</th>
+          <th>Cell 2</th>
+          <th>Cell 3</th>
+        </tr>
+        <tr>
+          <th>Cell 4</th>
+          <th>Cell 5</th>
+          <th>Cell 6</th>
+        </tr>
+      </table>
+      
+      <iframe src="https://www.youtube.com/embed/ZDivPFroExk?si=5M4cP9oom9joZ6G-"></iframe> <!-- Ideally 16 by 9 -->
+
+      <video controls>
+        <source src="./placeholder_assets/not an iPod prototype.mp4" type="video/mp4">
+      </video>
+     
+      <!-- Works best with 4 by 3 images (iphone default) or 16 by 9 images -->
+      <img src="./placeholder_assets/assempcbback.JPG" alt="">
+      <p class="caption">Here's a caption describing the image</p>
+
+      <div class="img-duo">
+        <img src="./placeholder_assets/pcbfront.JPG" alt="">
+        <img src="./placeholder_assets/pcbback.JPG" alt="">
+      </div>
+     
+      <div class="img-quad">
+        <img src="./placeholder_assets/finalfront.jpg" alt="">
+        <img src="./placeholder_assets/finalback.jpg" alt="">
+        <img src="./placeholder_assets/finalside.jpg" alt="">
+        <img src="./placeholder_assets/protofront.jpg" alt="">
+      </div> 
+
+      <!-- Subsequent slideshows should be named "slideshow2", "slideshow3", etc.  -->
+			<div id="slideshow1" class="slideshow-container">
+				<div class="slides">
+					<img src="./placeholder_assets/DialDrawing.png" alt="">
+				</div>
+				<div class="slides">
+					<img src="./placeholder_assets/StickDrawing.png" alt="">
+				</div>
+
+				<a class="prev" onclick="plusSlides(-1, 'slideshow2')">&#10094;</a>
+				<a class="next" onclick="plusSlides(1, 'slideshow2')">&#10095;</a>
+			</div>
+
+      <!-- Best with 9 by 16 images -->
+      <div class="img-trip">
+        <img src="./placeholder_assets/assempcbcloseup1.jpg" alt="">
+        <img src="./placeholder_assets/assempcbcloseup2.jpg" alt="">
+        <img src="./placeholder_assets/assempcbcloseup3.jpg" alt="">
+      </div>
+
+    </section>
+  </body>
+
+  <footer>See config.js</footer>
+
+  <script src="./config.js"></script>
+  <script src="./slideshow.js"></script>
+</html>
