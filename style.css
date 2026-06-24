@@ -22,8 +22,12 @@ html {
 
 /* TEXT */
 
-h1, h2, h3, p, b, ul, ol, pre, table {
+h1, h2, h3, b, ul, ol, pre, table {
   margin-bottom: 3rem;
+}
+
+p {
+  margin-bottom: 1rem;
 }
 
 h1 {
@@ -173,7 +177,7 @@ img:has(+ .caption) {
   transform: translateY(-100%);
   padding: 0vh 2vw;
 
-  color: var(--background-color);
+  color: var(--accent-color);
   cursor: pointer;
   user-select: none;
   text-decoration: none;
