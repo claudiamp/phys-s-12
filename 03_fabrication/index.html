@@ -42,17 +42,40 @@
         
       <p>I designed the box with holes so the motor could be attached with a couple of M3 screws. I also made a shaft holder and a dowel holder so the dowel could connect to the shaft and rotate.</p>
 
-      <img src="./Assets/motor.jpeg" />
+      <div id="slideshow1" class="slideshow-container">
+				<div class="slides">
+					<img src="./Assets/side-panel.png" />
+				</div>
+				<div class="slides">
+					<img src="./Assets/motor.jpeg" />
+				</div>
+				<div class="slides">
+					<img src="./Assets/shaft-holder.png" />
+				</div>
+				<div class="slides">
+					<img src="./Assets/dowel-holder.png" />
+				</div>
+				<div class="slides">
+					<img src="./Assets/holder-in-action.jpeg" />
+				</div>
+				<a class="prev" onclick="plusSlides(-1, 'slideshow2')">&#10094;</a>
+				<a class="next" onclick="plusSlides(1, 'slideshow2')">&#10095;</a>
+			</div>
 
-      <img src="./Assets/shaft-holder.png" width="218" />
-
-      <img src="./Assets/dowel-holder.png" width="218" />
-        
-      <p>I designed the mole in Illustrator and imported it into Fusion, where I scaled it. It worked well, but I learned that if you want to engrave designs, you shouldn't let the lines connect. Because of this, some of the mole's eyes, mouth, and fingers were cut out instead of just engraved. This is something I can improve on for the project.</p>
+      <p>I designed the mole in Illustrator (following a reference image from internet) and imported it into Fusion, where I scaled it. It worked well, but I learned that if you want to engrave designs, you shouldn't let the lines connect. Because of this, some of the mole's eyes, mouth, and fingers were cut out instead of just engraved. This is something I can improve on for the project.</p>
 
       <img src="./Assets/mole.png" />
 
+      <p>During testing, I discovered that because the cams and followers are not perfectly aligned and are made of cardboard, the mole was rotating and sometimes getting stuck at the top of the box. To solve this, I added cardboard cylinders and a strip of green cardboard to look like grass and prevent the mole from getting stuck.</p>
+
+      <img src="./Assets/cylinder-and-mole.jpeg" />
+
+      <p>To power the project, I soldered the pins on the microcontroller and connected it to a breadboard. I linked the microcontroller's ground and power pins to the breadboard's power rails, then connected jumper wires from the motor to the power rails. The microcontroller was powered through an external power bank via a USB-C cable.</p>
+
+			<img src="./Assets/breadboard.jpeg" />
+
       <a href="./Assets/sculpture.f3d">Download Fusion File</a>
+      <a href="./Assets/cylinder.f3d">Download Fusion Cylinder File</a>
 
     </section>
   </body>
