@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 :root {
   --secondary-background-color: color-mix(in srgb, var(--text-color) 8%, var(--background-color) 92%);
@@ -22,7 +22,7 @@ html {
 
 /* TEXT */
 
-h1, h2, h3, b, ul, ol, pre, table {
+h1, h2, h3, b, ul, ol, pre, table, figure {
   margin-bottom: 3rem;
 }
 
@@ -69,7 +69,7 @@ ul, ol, tr{
 }
 
 code {
-  font-family: var(--mono-font-family);
+  font-family: 'JetBrains Mono', var(--mono-font-family);
   background-color: var(--secondary-background-color);
   border-radius: 5px;
   padding: 0px 5px 3px 5px;
@@ -82,10 +82,20 @@ pre {
 }
 
 pre code {
-  background-color: none;
+  background: none;
   font-size: clamp(0.8rem, 0.8vw, 100rem);
   padding: 0%;
   margin: 0%;
+}
+
+pre[class*="language-"],
+code[class*="language-"] {
+  font-family: 'JetBrains Mono', var(--mono-font-family);
+  background: var(--secondary-background-color);
+}
+
+.token.operator {
+  background: none;
 }
 
 table {
@@ -304,7 +314,66 @@ footer a {
   padding-right: 2rem;
 }
 
-@media (max-width: 1000px) { 
-  .about { grid-template-columns: 1fr; } 
+@media (max-width: 1000px) {
+  .about { grid-template-columns: 1fr; }
   .about img { padding-right: 0%;}
+}
+
+/* Tabs */
+
+.tabs {
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
+.tab-buttons {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--text-color);
+  margin-bottom: 0;
+}
+
+.tab-btn {
+  font-family: var(--font-family);
+  font-size: clamp(0.9rem, 1vw, 100rem);
+  font-weight: 400;
+  color: var(--text-color);
+  background: none;
+  border: none;
+  padding: 0.5rem 1.2rem;
+  cursor: pointer;
+  opacity: 0.5;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.tab-btn.active {
+  opacity: 1;
+  border-bottom-color: var(--text-color);
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: flex;
+  flex-direction: column;
+}
+
+.tab-panel video,
+.tab-panel img {
+  width: clamp(20rem, 45vw, 160rem);
+  align-self: center;
+  margin-bottom: 0;
+}
+
+.tab-panel video {
+  height: clamp(11.25rem, 25.313vw, 90rem);
+}
+
+.tab-panel pre {
+  max-height: 25rem;
+  overflow-y: auto;
+  margin-bottom: 0;
 }
