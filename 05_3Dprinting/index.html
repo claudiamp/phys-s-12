@@ -37,7 +37,54 @@
         <li><a href="./Assets/Box.bgcode">Download Box G-code</a></li>
         <li><a href="./Assets/Lid.bgcode">Download Lid G-code</a></li>
       </ul>
-      
+
+      <h3>Photogrammetry Scan</h3>
+
+      <p>I decided to scan a pecan since it's a natural object with lots of variance. I scanned it using the RealityScan app, then imported it into Rhino and deleted the faces from the desk so the mesh is clean.</p>
+
+      <div id="slideshow1" class="slideshow-container">
+				<div class="slides">
+					<img src="./Assets/pecan-original.png" />
+				</div>
+				<div class="slides">
+					<img src="./Assets/pecan-mesh.png" />
+				</div>
+				<div class="slides">
+					<img src="./Assets/pecan-mesh-clean.png" />
+				</div>
+				<div class="slides">
+					<img src="./Assets/pecan-render-clean.png" />
+				</div>
+				<a class="prev" onclick="plusSlides(-1, 'slideshow2')">&#10094;</a>
+				<a class="next" onclick="plusSlides(1, 'slideshow2')">&#10095;</a>
+			</div>
+
+      <p><a href="./Assets/Pecan.zip">Download 3d Assets</a></p>
+
+      <h3>Final Project Update</h3>
+
+      <p><strong>Project Goal</strong></p>
+      <p>Have a functional pill box with a robot companion that helps remind me to take my pill each morning.</p>
+
+      <p><strong>Bill of Materials</strong></p>
+      <ul>
+        <li>(1) XIAO ESP32</li>
+        <li>(1) PIR sensor</li>
+        <li>(1) Speaker</li>
+        <li>(1) LM386 amplifier module</li>
+        <li>(7) Reed switches</li>
+        <li>(2) MAX7219 (8x8 Led matrixes)</li>
+        <li>(1) Protoboard</li>
+        <li>Wires and m3 screws</li>
+      </ul>
+
+      <p><strong>Timeline</strong></p>
+      <ul>
+        <li>16/07 – Finish MVP of electronic components and Arduino code.</li>
+        <li>23/07 – Design pill box compartment with housing for the reed switches. Finish app coding.</li>
+        <li>02/08 – Design and print final pill box and robot companion. Solder protoboard and wiring.</li>
+      </ul>
+            
     </section>
   </body>
 
