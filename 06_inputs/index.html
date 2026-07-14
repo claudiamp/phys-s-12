@@ -5,6 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+
     <link rel="stylesheet" href="../style.css">
   </head>
 
@@ -18,13 +23,122 @@
     <section class="blog">
       <h1>Week 6: Inputs</h1>
 
-      <p>
-        You have two assignments: create and calibrate a capacitive sensor and then use and calibrate another sensor.
-      </p>
-      
       <h2>Capacitive Sensor</h2>
+
+      <p>For this week's assignment we created a capacitive sensor to detect water level in a bottle. We used two copper foils and tested the readings while putting more water in the bottle (0, 25, 50, 75). We had some trouble on the first try with some interference, so for the second attempt and the readings below we avoided touching it, remained afar, and put water in it, since touching it, the cables, or others were interfering with the readings.</p>
+      <img src="./Assets/water-bottle.jpg">
+
+      <p>For the code, we followed the <a href="https://nathanmelenbrink.github.io/lab/input/capacitance/capacitance.txt">provided example</a> and just connected the two copper foils directly to two pins on the XIAO.</p>
+
+      <img src="./Assets/breadboard.jpeg" />
+
+      <table>
+        <tr>
+          <td>Level</td>
+          <td>Reading (x10000)</td>
+        </tr>
+        <tr>
+          <td>0%</td>
+          <td>250</td>
+        </tr>
+        <tr>
+          <td>25%</td>
+          <td>251</td>
+        </tr>
+        <tr>
+          <td>50%</td>
+          <td>256</td>
+        </tr>
+        <tr>
+          <td>75%</td>
+          <td>260</td>
+        </tr>
+        <tr>
+          <td>100%</td>
+          <td>263</td>
+        </tr>
+      </table>
+
+      <img src="./Assets/water_level_sensor.png" />
+
+      <p>Looking at the results, the readings go up steadily as we add more water, and the relationship is pretty linear. Each time we added water, the reading climbed by a similar amount, so the points line up close to a straight line.</p>
+
+      <p>This makes sense with how the sensor works once we changed the permittivity in the formula. The two foils with the bottle in between act like a capacitor, and water affects it a lot more than air does. So as the water level rises and covers more of the foils, the reading goes up in a steady, straight-line way instead of curving.</p>
+
+      <p>One thing we noticed is that the jump from 0% to 25% was smaller than the other steps. We think this is because at the very bottom the water isn't really touching the foils yet, or there was still a bit of interference on the empty reading. The rest of the points follow the line closely.</p>
       
-      <h2>Another Sensor</h2>
+      <h2>Capacitive Touch Sensor</h2>
+
+      <p>For the second sensor I decided to explore the capacitive touch sensor. I got really interested since I thought it was a great way to "pet" my robot that I'm building for my final assignment without using an actual button.</p>
+
+      <p>I had to use my ESP32 instead of the XIAO ESP32, since that version does have pins with touchRead functionality. touchRead is built into the ESP32, so I just read one of the touch-capable pins and it gives me a value that changes when I touch it. The number drops when there's contact, so I can use that to know when my robot is being "petted" without adding a button or any extra components.</p>
+
+      <p>When I touched the copper foil directly the reading dropped almost all the way down (from around 820 to around 20), but when I put a material in between, the cardboard or the plywood, the drop was way smaller (only about 90 points instead of 800).</p>
+
+      <p>Even so, the drop with a material in between is still big enough to detect, so it can still work as a "touch" for the robot.</p>
+
+      <div id="slideshow1" class="slideshow-container">
+				<div class="slides">
+					<img src="./Assets/capacitive-touch-without-material.png" alt="">
+          <p class="caption"><i>Capacitive touch without any material</i></p>
+				</div>
+				<div class="slides">
+					<img src="./Assets/cardboard.png" alt="">
+          <p class="caption"><i>Cardboard</i></p>
+				</div>
+				<div class="slides">
+					<img src="./Assets/wood.png" alt="">
+          <p class="caption"><i>Wood</i></p>
+				</div>
+
+				<a class="prev" onclick="plusSlides(-1, 'slideshow2')">&#10094;</a>
+				<a class="next" onclick="plusSlides(1, 'slideshow2')">&#10095;</a>
+			</div>
+
+      <p>Then, I used the readings to create an Arduino sketch that uses these values as thresholds to act as a button and be able to enable an LED light.</p>
+
+
+      <div class="tabs">
+        <div class="tab-buttons">
+          <button class="tab-btn active" data-tab="video">Video</button>
+          <button class="tab-btn" data-tab="code">Code</button>
+          <button class="tab-btn" data-tab="schematic">Schematic</button>
+        </div>
+        <div class="tab-panel active" data-tab="video">
+          <video controls muted loop>
+            <source src="./Assets/video.mov" type="video/mp4">
+          </video>
+        </div>
+        <div class="tab-panel" data-tab="code">
+          <pre><code class="language-c">
+int LEDPin = 25;
+
+void setup() {
+  pinMode(LEDPin, OUTPUT);
+  digitalWrite(LEDPin, LOW);
+}
+
+void loop() {
+  Serial.println(touchRead(T2));  // get value using T2
+  int value = touchRead(T2);
+  if(value < 720) {
+    digitalWrite(LEDPin, HIGH);
+  } else {
+    digitalWrite(LEDPin, LOW);
+  }
+
+}
+          </code></pre>
+        </div>
+        <div class="tab-panel" data-tab="schematic">
+          <img src="./Assets/schematic.png">
+        </div>
+      </div>
+
+
+      <h2>CNC Assignment</h2>
+
+      <p>For the CNC Assignment I will design a board with KiCad and mill it in the lab with the CNC machine.</p>
       
     </section>
   </body>
@@ -33,4 +147,5 @@
 
   <script src="../config.js"></script>
   <script src="../slideshow.js"></script>
+  <script src="../tabs.js"></script>
 </html>
