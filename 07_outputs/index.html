@@ -815,7 +815,16 @@ PASTE YOUR PRIVATE KEY HERE
       <h2>App Code</h2>
 
       <p>The application code was written using Claude Code. The app is built with React Native, and the backend is serverless using AWS SAM. You can see the code for the project <a href="https://github.com/claudiamp/phys-s-12/tree/main/13_finalproject/src" target="_blank">here</a>.</p>
+      
+      <h2>Oscilloscope</h2>
 
+      <img src="./Assets/oscilloscope.jpeg" alt="">
+
+      <p>To figure out how fast my output device runs, I used a Tektronix DPO 2012B oscilloscope. First I connected the probe directly to the speaker's positive and negative terminals. That only showed me the audio itself, a wavy signal that kept changing shape and had no steady frequency. It makes sense, because the speaker is just a passive part that moves with whatever voltage reaches it, so it doesn't have a clock of its own.</p>
+      <p>To find the real clock I moved the probe to the LRCLK pin (D3), which is the sample clock on the I2S bus between the ESP32 and the MAX98357A. This time I got a clean square wave at 3.3V with a period of about 41 µs. The scope measured 24.0005 kHz, which matches the 24000 Hz sample rate I set in my code almost exactly. The tiny difference is just the tolerance of the ESP32 crystal.</p>
+      <p>So yes, the output runs on a fixed clock. The digital side sends one audio sample every 41 microseconds, which works out to 24 kHz.</p>
+
+      <p></p>
     </section>
   </body>
 
