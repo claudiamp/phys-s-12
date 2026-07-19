@@ -1,0 +1,155 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >-
+  Smart Pillbox backend — IoT ingest, 1-hour reminder state machine, FCM push, and an
+  API-key-protected REST API for the mobile app.
+
+Parameters:
+  ApiKey:
+    Type: String
+    NoEcho: true
+    Description: Shared secret the mobile app sends in the x-api-key header.
+  FcmServiceAccountParam:
+    Type: String
+    Default: /pillbox/fcm-service-account
+    Description: SSM Parameter Store name holding the Firebase service-account JSON (SecureString).
+
+Globals:
+  Function:
+    Runtime: nodejs24.x
+    Timeout: 15
+    MemorySize: 256
+    Architectures:
+      - arm64
+
+Resources:
+  # Single generic pk/sk table: EVENTS items (one per day) and TOKENS items (FCM tokens).
+  PillboxTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+
+  PillboxApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Auth:
+        DefaultAuthorizer: ApiKeyAuthorizer
+        AddDefaultAuthorizerToCorsPreflight: false
+        Authorizers:
+          ApiKeyAuthorizer:
+            FunctionArn: !GetAtt AuthorizerFunction.Arn
+            FunctionPayloadType: REQUEST
+            Identity:
+              Headers:
+                - x-api-key
+
+  AuthorizerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: authorizer.handler
+      Environment:
+        Variables:
+          API_KEY: !Ref ApiKey
+
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: api.handler
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref PillboxTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PillboxTable
+      Events:
+        GetEvents:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PillboxApi
+            Path: /events
+            Method: get
+        PostToken:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PillboxApi
+            Path: /token
+            Method: post
+
+  IngestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: ingest.handler
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref PillboxTable
+          STATE_MACHINE_ARN: !Ref ReminderStateMachine
+          DEVICE_ID: pillbox-esp32
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PillboxTable
+        - Statement:
+            - Effect: Allow
+              Action: states:StartExecution
+              Resource: !Ref ReminderStateMachine
+      Events:
+        PillboxOpened:
+          Type: IoTRule
+          Properties:
+            Sql: "SELECT * FROM 'pillbox/opened'"
+
+  NotifyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: notify.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref PillboxTable
+          FCM_SA_PARAM: !Ref FcmServiceAccountParam
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref PillboxTable
+        # Read the Firebase service-account SecureString. Built inline with Fn::Sub so the
+        # leading slash in the parameter path yields exactly one slash after "parameter".
+        # (The default SecureString KMS key needs no extra kms:Decrypt permission.)
+        - Statement:
+            - Effect: Allow
+              Action: ssm:GetParameter
+              Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${FcmServiceAccountParam}
+
+  ReminderStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Type: STANDARD
+      DefinitionUri: statemachine/reminder.asl.json
+      DefinitionSubstitutions:
+        NotifyFunctionArn: !GetAtt NotifyFunction.Arn
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref NotifyFunction
+
+Outputs:
+  ApiBaseUrl:
+    Description: Base URL of the REST API (Prod stage).
+    Value: !Sub https://${PillboxApi}.execute-api.${AWS::Region}.amazonaws.com/Prod
+  TableName:
+    Description: DynamoDB table name.
+    Value: !Ref PillboxTable
+  StateMachineArn:
+    Description: Reminder state machine ARN.
+    Value: !Ref ReminderStateMachine

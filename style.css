@@ -377,3 +377,16 @@ footer a {
   overflow-y: auto;
   margin-bottom: 0;
 }
+
+/* App slideshow: half the default media width, kept centered */
+.slideshow-container.half-width .slides {
+  width: clamp(10rem, 22.5vw, 80rem);
+  margin-left: auto;
+  margin-right: auto;
+}
+.slideshow-container.half-width .slides img {
+  width: 100%;
+}
+.slideshow-container.half-width .caption {
+  text-align: center;
+}

@@ -1,0 +1,12 @@
+# Dependencies
+node_modules/
+
+# SAM build artifacts
+.aws-sam/
+
+# Firebase service-account JSON — never commit secrets
+service-account*.json
+*-service-account.json
+
+# Local SAM deploy config (may hold the ApiKey override)
+samconfig.toml

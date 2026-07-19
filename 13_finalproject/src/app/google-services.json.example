@@ -1,0 +1,22 @@
+{
+  "_comment": "PLACEHOLDER ONLY — not used by the build. Download the real google-services.json from the Firebase console (Project settings -> your Android app, package name com.pillbox.app) and save it at app/google-services.json. That file is gitignored.",
+  "project_info": {
+    "project_number": "000000000000",
+    "project_id": "your-firebase-project-id",
+    "storage_bucket": "your-firebase-project-id.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+        "android_client_info": {
+          "package_name": "com.pillbox.app"
+        }
+      },
+      "api_key": [
+        { "current_key": "YOUR_FIREBASE_ANDROID_API_KEY" }
+      ]
+    }
+  ],
+  "configuration_version": "1"
+}

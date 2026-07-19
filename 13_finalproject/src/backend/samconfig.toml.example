@@ -1,0 +1,10 @@
+# Copy this file to samconfig.toml and fill in the ApiKey override before deploying.
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "pillbox"
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM"
+resolve_s3 = true
+# The shared secret the app sends in the x-api-key header (generate with: openssl rand -hex 24):
+# parameter_overrides = "ApiKey=your-api-key-here"

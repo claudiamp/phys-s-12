@@ -1,0 +1,8 @@
+{
+  "Comment": "Wait 1 hour after the pill is taken, then send the 'okay to eat' push.",
+  "StartAt": "WaitOneHour",
+  "States": {
+    "WaitOneHour": { "Type": "Wait", "Seconds": 3600, "Next": "SendPush" },
+    "SendPush": { "Type": "Task", "Resource": "${NotifyFunctionArn}", "End": true }
+  }
+}
