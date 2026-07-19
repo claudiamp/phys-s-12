@@ -177,8 +177,21 @@ img:has(+ .caption) {
   overflow: hidden;
 }
 
+/* Pin the slide to the media width so a long caption can't stretch the
+   container and push the arrows away from the image. */
 .slides {
   display: none;
+  width: clamp(20rem, 45vw, 160rem);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.slides img, .slides video {
+  width: 100%;
+}
+
+.slides .caption {
+  text-align: center;
 }
 
 .prev, .next {

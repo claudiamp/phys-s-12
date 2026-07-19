@@ -17,11 +17,65 @@
   <body>
     <section class="blog">
       <h1>Week 8: CNC</h1>
-      
-      <p>
-        Design and fabricate something using one of the CNC machines in the lab. Make sure to include some kind of post processing in your design.
-      </p>
-      
+
+      <p>For this week I decided to learn how to make a custom PCB. I used <a href="https://www.kicad.org/" target="_blank">KiCad</a> to draw the schematic and route the board, and then milled it out of a copper-clad board on the CNC machine. The post-processing was soldering: I soldered the female header pins and an LED onto the milled board, and then mounted the components (a rotary encoder and a XIAO ESP32-C3). Finally I wrote the code so the rotary encoder works as a dimmer for the LED.</p>
+
+      <h2>Design</h2>
+
+      <p>In KiCad I first drew the schematic. The rotary encoder module plugs into a 5-pin connector (J1) that carries CLK, DT, SW, +3.3V and GND, with the three signals going to D0, D1 and D2 on the XIAO ESP32-C3. The LED is driven from pin D3 and goes to ground through a 1k resistor. Then I moved to the PCB editor to place the footprints and route the traces on a single copper layer, keeping the traces wide enough for the end mill to cut cleanly and leaving enough clearance between them. Finally I exported the Gerber files to generate the toolpaths for milling.</p>
+
+      <div id="slideshow2" class="slideshow-container">
+        <div class="slides">
+          <img src="./Assets/schematic.png" alt="">
+          <p class="caption"><i>KiCad schematic of the encoder and the LED</i></p>
+        </div>
+        <div class="slides">
+          <img src="./Assets/pcb-layout.png" alt="">
+          <p class="caption"><i>PCB layout on a single copper layer</i></p>
+        </div>
+
+        <a class="prev" onclick="plusSlides(-1, 'slideshow2')">&#10094;</a>
+        <a class="next" onclick="plusSlides(1, 'slideshow2')">&#10095;</a>
+      </div>
+
+      <p><a href="./Assets/gerbers.zip" download>Download Gerber files</a></p>
+
+      <h2>Milling and post-processing</h2>
+
+      <p>Here is the process, from the milled board to the assembled dimmer.</p>
+
+      <div id="slideshow1" class="slideshow-container half-width">
+        <div class="slides">
+          <img src="./Assets/milled-board.jpeg" alt="">
+          <p class="caption"><i>Milled board</i></p>
+        </div>
+        <div class="slides">
+          <img src="./Assets/solder-board.jpeg" alt="">
+          <p class="caption"><i>Soldered PCB</i></p>
+        </div>
+        <div class="slides">
+          <img src="./Assets/solder-header-pins.jpeg" alt="">
+          <p class="caption"><i>Female headers and LED soldered in place</i></p>
+        </div>
+        <div class="slides">
+          <img src="./Assets/board-with-components.jpeg" alt="">
+          <p class="caption"><i>Rotary encoder and XIAO ESP32-C3 mounted</i></p>
+        </div>
+
+        <a class="prev" onclick="plusSlides(-1, 'slideshow1')">&#10094;</a>
+        <a class="next" onclick="plusSlides(1, 'slideshow1')">&#10095;</a>
+      </div>
+
+      <p>Once the board came off the CNC, the post-processing step was soldering. I started with the three female header rows so the XIAO and the encoder module would be removable instead of permanently attached, and then soldered the LED and its resistor. The tricky part is that a milled board has no solder mask, so the solder spreads easily and it is very easy to bridge two traces. I had to keep the iron on for a short time and use very little solder on the pads that were close together.</p>
+
+      <h2>Result</h2>
+
+      <p>With everything mounted, the rotary encoder is read as an input and the LED is driven with PWM, so turning the knob one way makes the light brighter and the other way makes it dimmer. It works as a small dimmer switch built entirely on my own board.</p>
+
+      <video controls>
+        <source src="./Assets/video.mp4" type="video/mp4">
+      </video>
+
     </section>
   </body>
 
