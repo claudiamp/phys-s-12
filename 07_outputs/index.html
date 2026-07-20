@@ -812,6 +812,8 @@ PASTE YOUR PRIVATE KEY HERE
 
       <img src="./Assets/aws-architecture.png" alt="">
 
+      <p>When the user opens the pillbox, a message is sent to AWS IoT Core through the MQTT protocol. There is a rule configured for that event to route it to the IngestFunction Lambda. That Lambda records the time of the event in a DynamoDB table and triggers the ReminderStateMachine. The Step Function waits for an hour and then triggers the NotifyFunction, which sends a push notification to the app. The app communicates with the backend through an API Gateway connected to the PillboxApi Lambda, which gets the information from DynamoDB for the calendar and history views.</p>
+      
       <h2>App Code</h2>
 
       <p>The application code was written using Claude Code. The app is built with React Native, and the backend is serverless using AWS SAM. You can see the code for the project <a href="https://github.com/claudiamp/phys-s-12/tree/main/13_finalproject/src" target="_blank">here</a>.</p>
