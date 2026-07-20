@@ -29,10 +29,11 @@ const char* NTP_SERVER = "pool.ntp.org";
 const long GMT_OFFSET = -5 * 3600;  // LIMA timezone
 const int DST_OFFSET = 0;
 
+// LOW while a pushbutton stands in for the reed switch (pressed = box opened).
 #define PILLBOX_OPEN_LEVEL HIGH
 
 MotionSensor pir(PIR_PIN);
-PillBox pillBox(PILLBOX_PIN, PILLBOX_OPEN_LEVEL);
+PillBox pillBox(PILLBOX_PIN, PILLBOX_OPEN_LEVEL, 150);
 Eyes eyes(EYES_DATA_PIN, EYES_CLK_PIN, EYES_CS_PIN);
 Speaker speaker(I2S_BCLK_PIN, I2S_LRC_PIN, I2S_DOUT_PIN, AUDIO_SAMPLE_RATE);
 
@@ -43,6 +44,7 @@ int triggerCount = 0;
 int lastResetDay = -1;
 int wifiFailCount = 0;
 bool mqttSent = false;
+bool pirReadyPrinted = false;
 
 int getHour() {
   struct tm timeinfo;
@@ -105,13 +107,20 @@ void setup() {
   pillBox.begin();
   eyes.begin();
   speaker.begin();
-  speaker.setVolume(1);   // try 0.3–0.5 until the crackle is gone
+  speaker.setVolume(0.3); // between 0 and 1
 
   eyes.setSleepTimeout(SLEEP_TIMEOUT_MS);
   eyes.setExpression(Eyes::THINKING);
 
-  WiFi.begin(WIFI_SSID, WIFI_PASS);
-  Serial.print("Connecting to WiFi");
+  WiFi.mode(WIFI_STA);
+  Serial.print("ESP32 MAC Address: ");
+  Serial.println(WiFi.macAddress());
+  Serial.print("Connecting to \"");
+  Serial.print(WIFI_SSID);
+  Serial.print("\"");
+
+  WiFi.begin(WIFI_SSID);
+
   int attempts = 0;
   while (WiFi.status() != WL_CONNECTED && attempts < 20) {
     eyes.update();
@@ -119,6 +128,9 @@ void setup() {
     Serial.print(".");
     attempts++;
   }
+  Serial.print(" [status=");
+  Serial.print(WiFi.status());   // 3=connected, 6=no SSID found, 4=connect fail
+  Serial.println("]");
 
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println(" failed");
@@ -128,17 +140,18 @@ void setup() {
     eyes.setExpression(Eyes::OPEN);
     configTime(GMT_OFFSET, DST_OFFSET, NTP_SERVER);
     Serial.println("NTP time synced");
+
+    net.setCACert(AWS_CERT_CA);
+    net.setCertificate(AWS_CERT_CRT);
+    net.setPrivateKey(AWS_CERT_PRIVATE);
+
+    mqtt.begin(AWS_IOT_ENDPOINT, 8883, net);
+    connectMQTT();
+
+    eyes.setExpression(Eyes::OPEN);
+    speaker.play(hi_there_data, hi_there_len);
   }
 
-  net.setCACert(AWS_CERT_CA);
-  net.setCertificate(AWS_CERT_CRT);
-  net.setPrivateKey(AWS_CERT_PRIVATE);
-
-  mqtt.begin(AWS_IOT_ENDPOINT, 8883, net);
-  connectMQTT();
-
-  eyes.setExpression(Eyes::OPEN);
-  speaker.play(hi_there_data, hi_there_len);
 }
 
 void loop() {
@@ -159,6 +172,11 @@ void loop() {
     connectMQTT();
   }
   mqtt.loop();
+
+  if (!pirReadyPrinted && pir.ready()) {
+    pirReadyPrinted = true;
+    Serial.println("PIR ready — detecting movement");
+  }
 
   resetDailyCounter();
 
