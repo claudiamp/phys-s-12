@@ -76,6 +76,10 @@ void resetDailyCounter() {
 void connectMQTT() {
   Serial.print("Connecting to AWS IoT");
   while (!mqtt.connect(AWS_IOT_CLIENT_ID)) {
+    if (WiFi.status() != WL_CONNECTED) {   // WiFi dropped mid-attempt: bail, let loop() recover
+      Serial.println(" WiFi lost");
+      return;
+    }
     Serial.print(".");
     delay(500);
   }
@@ -132,6 +136,13 @@ void setup() {
   Serial.print(WiFi.status());   // 3=connected, 6=no SSID found, 4=connect fail
   Serial.println("]");
 
+  // TLS + MQTT configuration: no network I/O, so it's safe even if WiFi is
+  // down, and it only needs to run once. loop() drives the actual connecting.
+  net.setCACert(AWS_CERT_CA);
+  net.setCertificate(AWS_CERT_CRT);
+  net.setPrivateKey(AWS_CERT_PRIVATE);
+  mqtt.begin(AWS_IOT_ENDPOINT, 8883, net);
+
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println(" failed");
     eyes.setExpression(Eyes::ERROR);
@@ -141,14 +152,7 @@ void setup() {
     configTime(GMT_OFFSET, DST_OFFSET, NTP_SERVER);
     Serial.println("NTP time synced");
 
-    net.setCACert(AWS_CERT_CA);
-    net.setCertificate(AWS_CERT_CRT);
-    net.setPrivateKey(AWS_CERT_PRIVATE);
-
-    mqtt.begin(AWS_IOT_ENDPOINT, 8883, net);
     connectMQTT();
-
-    eyes.setExpression(Eyes::OPEN);
     speaker.play(hi_there_data, hi_there_len);
   }
 
