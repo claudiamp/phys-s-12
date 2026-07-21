@@ -5,6 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+
     <link rel="stylesheet" href="../style.css">
   </head>
 
@@ -18,8 +24,162 @@
     <section class="blog">
       <h1>Week 9: Networking</h1>
 
-      <p>Working with a partner or group of 3, program something that makes use of the radio, Wifi, or bluetooth capabilities of the ESP32. Only one person per group needs to have documentation on their website. Everyone else should provide a link to that person's documentation.</p>
-      
+      <h2>What I built</h2>
+
+      <p>For this assignment I connected a 32×8 LED matrix (four chained 8×8 modules) to the XIAO ESP32 and used the WiFi capabilities to display messages sent from the cloud. The idea was to be able to type a message in the AWS IoT console and have it scroll across the matrix in real time.</p>
+
+      <p>To make that work, the ESP32 connects to AWS IoT Core over MQTT and subscribes to a topic (<code>esp32/sub</code>). Whenever a message is published to that topic, AWS pushes it down to the board and a handler function parses the JSON payload and scrolls the text across the display.</p>
+
+      <h2>Sending a message from AWS</h2>
+
+      <p>I sent the message from the <b>MQTT test client</b> in the AWS IoT Core console. I published to the <code>esp32/sub</code> topic with a small JSON payload. The handler reads the <code>message</code> field and scrolls whatever text it contains.</p>
+
+      <pre><code class="language-json">{ "message": "Hello from AWS IoT" }</code></pre>
+
+      <img src="./Assets/aws-console-publish.png" alt="Publishing a message to the esp32/sub topic in the AWS IoT console">
+
+      <h2>Serial logs</h2>
+
+      <p>Here are the logs from the serial console. You can see the board connect to AWS IoT, receive the MQTT message on the <code>esp32/sub</code> topic, queue it, and then start showing it on the matrix.</p>
+
+      <img src="./Assets/serial-logs.png" alt="Serial monitor showing the MQTT message being received and displayed">
+
+      <h2>Demo</h2>
+
+      <p>Here is the video of it working. The message sent from the AWS console scrolls across the LED matrix.</p>
+
+      <video controls style="max-width: 100%;">
+        <source src="./Assets/hello-video.mp4" type="video/mp4">
+      </video>
+
+      <h2>Code</h2>
+
+      <p>Here is the code. <code>NetworkingAssignment.ino</code> handles the display and the AWS IoT connection. I used the <a href="https://github.com/MajicDesigns/MD_Parola" target="_blank">MD_Parola</a> library to scroll text across the four chained modules, and I followed <a href="https://aws.amazon.com/es/blogs/compute/building-an-aws-iot-core-device-using-aws-serverless-and-an-esp32/" target="_blank">this tutorial</a> to set up the MQTT connection to AWS IoT Core. New messages are queued and only swapped in at the end of a full scroll, so the text never overlaps mid-animation. The credentials and certificates live in <code>secrets.h</code> (shown here with placeholders).</p>
+
+      <div class="tabs">
+        <div class="tab-buttons">
+          <button class="tab-btn active" data-tab="NetworkingAssignment.ino">NetworkingAssignment.ino</button>
+          <button class="tab-btn" data-tab="secrets.h">secrets.h</button>
+        </div>
+        <div class="tab-panel active" data-tab="NetworkingAssignment.ino">
+          <pre><code class="language-cpp">#include &lt;MD_Parola.h&gt;
+#include &lt;MD_MAX72XX.h&gt;
+#include &lt;ArduinoJson.h&gt;
+#include &lt;WiFi.h&gt;
+#include &lt;WiFiClientSecure.h&gt;
+#include &lt;MQTTClient.h&gt;
+#include &quot;secrets.h&quot;
+
+#define AWS_IOT_SUBSCRIBE_TOPIC &quot;esp32/sub&quot;
+
+// --- Display
+#define HARDWARE_TYPE MD_MAX72XX::FC16_HW
+#define MAX_DEVICES   4
+#define DIN_PIN 10
+#define CLK_PIN 8
+#define CS_PIN  9
+
+WiFiClientSecure net;
+MQTTClient client(256);
+MD_Parola display = MD_Parola(HARDWARE_TYPE, DIN_PIN, CLK_PIN, CS_PIN, MAX_DEVICES);
+
+char messageBuffer[256] = &quot;Waiting for message...&quot;;
+char pendingBuffer[256] = &quot;&quot;;
+bool hasPending = false;
+
+// Queue a new message.
+void setMessage(const char* text) {
+  strncpy(pendingBuffer, text, sizeof(pendingBuffer) - 1);
+  pendingBuffer[sizeof(pendingBuffer) - 1] = &#x27;\0&#x27;;
+  hasPending = true;
+  Serial.print(&quot;Queued: &quot;);
+  Serial.println(pendingBuffer);
+}
+
+// AWS IoT Core message handler
+void messageHandler(String &amp;topic, String &amp;payload) {
+  Serial.println(&quot;MQTT [&quot; + topic + &quot;]  &quot; + payload);
+
+  JsonDocument doc;
+  DeserializationError err = deserializeJson(doc, payload);
+  if (!err) {
+    const char* msg = doc[&quot;message&quot;];      // pull the &quot;message&quot; field
+    if (msg) { setMessage(msg); return; }
+  }
+  setMessage(payload.c_str());             // fallback: scroll the raw payload
+}
+
+void connectAWS() {
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED) delay(300);
+
+  net.setCACert(AWS_CERT_CA);
+  net.setCertificate(AWS_CERT_CRT);
+  net.setPrivateKey(AWS_CERT_PRIVATE);
+
+  client.begin(AWS_IOT_ENDPOINT, 8883, net);
+  client.onMessage(messageHandler);
+  while (!client.connect(AWS_IOT_CLIENT_ID)) delay(100);
+  client.subscribe(AWS_IOT_SUBSCRIBE_TOPIC);
+  Serial.println(&quot;AWS IoT connected&quot;);
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  display.begin();
+  display.setIntensity(4);
+  display.displayText(messageBuffer, PA_LEFT, 60, 0, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
+
+  connectAWS();
+}
+
+void loop() {
+  client.loop();
+
+  if (display.displayAnimate()) {   // current scroll finished a full pass
+    if (hasPending) {               // swap in a queued message, cleanly
+      strcpy(messageBuffer, pendingBuffer);
+      hasPending = false;
+      Serial.print(&quot;Now showing: &quot;);
+      Serial.println(messageBuffer);
+    }
+    display.displayReset();         // scroll again
+  }
+}</code></pre>
+        </div>
+        <div class="tab-panel" data-tab="secrets.h">
+          <pre><code class="language-cpp">#pragma once
+
+// --- WiFi ---
+const char* WIFI_SSID     = &quot;YOUR_SSID&quot;;
+const char* WIFI_PASSWORD = &quot;YOUR_PASSWORD&quot;;
+
+// --- AWS IoT ---
+const char* AWS_IOT_ENDPOINT  = &quot;xxxxxx-ats.iot.us-east-1.amazonaws.com&quot;;
+const char* AWS_IOT_CLIENT_ID = &quot;NetworkingAssignment&quot;;
+
+// --- Certificates ---
+const char AWS_CERT_CA[] PROGMEM = R&quot;EOF(
+-----BEGIN CERTIFICATE-----
+PASTE YOUR AMAZON ROOT CA 1 HERE
+-----END CERTIFICATE-----
+)EOF&quot;;
+
+const char AWS_CERT_CRT[] PROGMEM = R&quot;EOF(
+-----BEGIN CERTIFICATE-----
+PASTE YOUR DEVICE CERTIFICATE HERE
+-----END CERTIFICATE-----
+)EOF&quot;;
+
+const char AWS_CERT_PRIVATE[] PROGMEM = R&quot;EOF(
+-----BEGIN RSA PRIVATE KEY-----
+PASTE YOUR PRIVATE KEY HERE
+-----END RSA PRIVATE KEY-----
+)EOF&quot;;</code></pre>
+        </div>
+      </div>
+
     </section>
   </body>
 
@@ -27,4 +187,5 @@
 
   <script src="../config.js"></script>
   <script src="../slideshow.js"></script>
+  <script src="../tabs.js"></script>
 </html>
