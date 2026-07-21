@@ -230,7 +230,7 @@ img:has(+ .caption) {
 
 nav {
   height: clamp(0rem, 20vw, 10rem);
-  width: 100vw;
+  width: 100%;
   padding: 0rem 7vw;
   gap: 3rem;
   display: flex;
@@ -252,7 +252,7 @@ nav #home {
 /* Footer */
 
 footer {
-  width: 100vw;
+  width: 100%;
   margin-top: 20vh;
   padding: 5vw;
   gap: 5vw;
