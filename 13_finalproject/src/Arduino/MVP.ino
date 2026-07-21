@@ -170,6 +170,12 @@ void loop() {
     delay(5000);
     return;
   }
+
+  // Just recovered from a WiFi drop: clear the ERROR face (it never sleeps on
+  // its own) so the normal open/sleep cycle resumes.
+  if (wifiFailCount > 0) {
+    eyes.setExpression(Eyes::OPEN);
+  }
   wifiFailCount = 0;
 
   if (!mqtt.connected()) {
