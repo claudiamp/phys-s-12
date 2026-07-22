@@ -143,6 +143,49 @@ Resources:
         - LambdaInvokePolicy:
             FunctionName: !Ref NotifyFunction
 
+  # --- Device connection diagnostics ---
+  # The ESP32 publishes {reason, rssi, ...} to pillbox/diag after each WiFi
+  # reconnect. This IoT rule streams those messages straight into a CloudWatch
+  # log group (no Lambda) so we can watch why the device is dropping.
+  DiagLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /pillbox/diag
+      RetentionInDays: 30
+
+  DiagRuleRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: iot.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: WriteDiagLogs
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/pillbox/diag:*
+
+  DiagRule:
+    Type: AWS::IoT::TopicRule
+    Properties:
+      TopicRulePayload:
+        Sql: "SELECT * FROM 'pillbox/diag'"
+        AwsIotSqlVersion: "2016-03-23"
+        RuleDisabled: false
+        Actions:
+          - CloudwatchLogs:
+              LogGroupName: !Ref DiagLogGroup
+              RoleArn: !GetAtt DiagRuleRole.Arn
+
 Outputs:
   ApiBaseUrl:
     Description: Base URL of the REST API (Prod stage).
@@ -153,3 +196,6 @@ Outputs:
   StateMachineArn:
     Description: Reminder state machine ARN.
     Value: !Ref ReminderStateMachine
+  DiagLogGroupName:
+    Description: CloudWatch log group receiving device connection diagnostics.
+    Value: !Ref DiagLogGroup
