@@ -106,9 +106,6 @@
 
       <p>The software is three small Python scripts on the laptop and a G-code interpreter on the board. </p>
 
-      <img src="./Assets/pipeline-diagram.png" alt="Diagram of the pipeline: photo to line art to pen paths to G-code on the laptop, then uploaded over WiFi to the ESP32 which parses it and drives the steppers and servo">
-      <p class="caption"><i>The full pipeline, from a photo on my laptop to the pen moving</i></p>
-
       <h3>Step 1: photo to line art</h3>
 
       <p>The <a href="https://github.com/claudiamp/phys-s-12/blob/main/10_machine/src/src/caricature.py" target="_blank">first script</a> sends the photo to the OpenAI image API with a prompt that asks for coloring-book line art. There are five styles to pick from.</p>
