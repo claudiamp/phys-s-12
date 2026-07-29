@@ -74,8 +74,8 @@ const float CIRCLE_R  = 5.0;
 const int   CIRCLE_SEGMENTS = 24;
 const float DOT_R = 0.8;        // the dot in the middle
 const int   DOT_SEGMENTS = 8;
-const float DRAW_SPEED = 1200;  // steps/s
-const float DRAW_ACCEL = 1000;  // steps/s^2
+const float DRAW_SPEED = 250;
+const float DRAW_ACCEL = 400;
 volatile bool drawCircle = false;
 
 // blocking move, both axes scaled so they arrive together
