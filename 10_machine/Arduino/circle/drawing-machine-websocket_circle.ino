@@ -68,9 +68,9 @@ volatile int servoPos = SERVO_UP;
 volatile bool updateServo = true;
 
 // ---- test circle ----
-const float CIRCLE_CX = 10.0;   // mm from home corner
-const float CIRCLE_CY = 10.0;
-const float CIRCLE_R  = 5.0;
+const float CIRCLE_CX = 30.0;   // mm from home corner
+const float CIRCLE_CY = 30.0;
+const float CIRCLE_R  = 10.0;
 const int   CIRCLE_SEGMENTS = 24;
 const float DOT_R = 0.8;        // the dot in the middle
 const int   DOT_SEGMENTS = 8;
