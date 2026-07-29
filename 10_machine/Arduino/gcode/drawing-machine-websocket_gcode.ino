@@ -80,6 +80,8 @@ const float BED_W_MM = 400.0;   // <-- set to your real travel
 const float BED_H_MM = 200.0;
 volatile bool drawFile = false;
 volatile bool stopFile = false;
+float originXmm = 0;            // where the job starts, captured when 'g' runs
+float originYmm = 0;
 
 // blocking move, both axes scaled so they arrive together
 void moveToMm(float xmm, float ymm) {
@@ -140,6 +142,11 @@ void runFile() {
   File f = LittleFS.open("/job.gcode", FILE_READ);
   if (!f) { Serial.println("no job file"); return; }
 
+  // wherever the head is sitting right now becomes gcode X0 Y0
+  originXmm = stepperX.currentPosition() / xMmtoSteps;
+  originYmm = stepperY.currentPosition() / yMmtoSteps;
+  Serial.printf("origin %.1f, %.1f\n", originXmm, originYmm);
+
   float x = 0, y = 0;
   char line[128];
 
@@ -159,11 +166,13 @@ void runFile() {
     if (g == 0 || g == 1) {
       x = getWord(line, 'X', x);            // no X on the line = keep the old one
       y = getWord(line, 'Y', y);
-      if (x < 0 || y < 0 || x > BED_W_MM || y > BED_H_MM) {
+      float px = x + originXmm;             // x and y stay raw, only px/py get the offset
+      float py = y + originYmm;
+      if (px < 0 || py < 0 || px > BED_W_MM || py > BED_H_MM) {
         Serial.println("off the bed, stopping");
         break;
       }
-      moveToMm(x, y);
+      moveToMm(px, py);
     }
   }
 

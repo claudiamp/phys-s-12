@@ -60,17 +60,22 @@ Style:
 - No grayscale.
 - Suitable for a coloring book."""
 
-CLASSIC = """Turn this portrait into a classic caricature illustration.
-
-- Exaggerate the person's most recognizable facial features while keeping them clearly identifiable.
-- Large head.
-- Expressive smile.
-- Clean flowing ink lines.
-- Minimal details.
-- Black and white only.
-- White background.
-- No shading.
-- Suitable for coloring."""
+CLASSIC = """draw a caricacture of this picture using the following prompt :
+ Create a traditional amusement-park caricature from this portrait. 
+ The drawing should look like it was created by a professional live caricature artist in about four minutes using a thick black Sharpie. }
+ Exaggerate only the person's defining features (especially the smile, jaw, nose, cheeks, eyes, and hairstyle) while preserving an unmistakable likeness. 
+ Use an oversized head and a lively pose. 
+ Favor rhythm, gesture, and confident draftsmanship over precision.
+ Use long, flowing strokes with dramatic line-weight variation. 
+ Many strokes should remain open or disconnected. Do not outline every form. 
+ Reduce the drawing to its essential shapes. 
+ Hair should be simplified into a few sweeping masses. 
+ Clothing should be suggested with only a handful of strokes. 
+ The smile should dominate the face, with simplified teeth rendered as a graphic shape rather than individually detailed. 
+ Strictly black ink on a white background. 
+ No gray, no anti-aliasing effects, no gradients, no hatching, no texture, no shadows, no color, and no vector-like perfection. 
+ The finished illustration should feel spontaneous, energetic, and unmistakably hand-drawn rather than digitally rendered. 
+ It should be suitable as clean line art for coloring."""
 
 PIXAR = """Create a stylized cartoon portrait inspired by modern animated films.
 
