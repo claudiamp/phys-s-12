@@ -31,7 +31,7 @@ const int stepPinX = D1;
 const int dirPinX = D5;
 const int stepPinY = D3;
 const int dirPinY = D2;
-float pulleyDiamX = 18.7;
+float pulleyDiamX = 12.22;
 float pulleyDiamY = 12.22;
 const int xMicrosteps = 16;
 const int yMicrosteps = 16;
@@ -42,7 +42,7 @@ const float yMmtoSteps = (yMicrosteps*stepsPerRev)/(pulleyDiamY*PI);
 
 const int servoPin = D4;
 const int SERVO_DOWN = 0;
-const int SERVO_UP = 90;
+const int SERVO_UP = 140;
 volatile bool isHoming = false;
 
 AccelStepper stepperX(AccelStepper::DRIVER, stepPinX, dirPinX);
@@ -65,9 +65,9 @@ volatile int servoPos = SERVO_UP;
 volatile bool updateServo = true;
 
 // ---- test circle ----
-const float CIRCLE_CX = 60.0;   // mm from home corner
-const float CIRCLE_CY = 60.0;
-const float CIRCLE_R  = 25.0;
+const float CIRCLE_CX = 50.0;   // mm from home corner
+const float CIRCLE_CY = 50.0;
+const float CIRCLE_R  = 20.0;
 const int   CIRCLE_SEGMENTS = 48;
 const float DOT_R = 0.8;        // the dot in the middle
 const int   DOT_SEGMENTS = 8;
@@ -76,7 +76,7 @@ const float DRAW_ACCEL = 4000;  // steps/s^2
 volatile bool drawCircle = false;
 
 // ---- gcode file ----
-const float BED_W_MM = 200.0;   // <-- set to your real travel
+const float BED_W_MM = 400.0;   // <-- set to your real travel
 const float BED_H_MM = 200.0;
 volatile bool drawFile = false;
 volatile bool stopFile = false;
@@ -95,16 +95,20 @@ void moveToMm(float xmm, float ymm) {
 
   stepperX.setMaxSpeed(vx); stepperX.setAcceleration(ax); stepperX.moveTo(tx);
   stepperY.setMaxSpeed(vy); stepperY.setAcceleration(ay); stepperY.moveTo(ty);
+  static uint32_t lastTick = 0;
   while (stepperX.distanceToGo() || stepperY.distanceToGo()) {
-    stepperX.run(); stepperY.run(); yield();
+    stepperX.run(); stepperY.run();
+    if (millis() - lastTick >= 20) { lastTick = millis(); delay(1); }
   }
 }
 
 void penTo(int target) {
-  int start = (target == SERVO_UP) ? SERVO_DOWN : SERVO_UP;
-  int inc   = (target == SERVO_UP) ? 1 : -1;
-  for (int i = start; i != target; i += inc) { servo.write(i); delay(5); }
+  static int actual = SERVO_UP;          // setup() leaves it here
+  if (target == actual) return;          // already there, nothing to do
+  int inc = (target > actual) ? 1 : -1;
+  for (int i = actual; i != target; i += inc) { servo.write(i); delay(5); }
   servo.write(target);
+  actual = target;
   servoPos = target;
   delay(150);
 }
@@ -172,7 +176,7 @@ void runFile() {
 void setup() {
   Serial.begin(115200);
   WiFi.mode(WIFI_AP);
-  WiFi.softAP("esp-captive");
+  WiFi.softAP("esp-captive claudia's team");
   pinMode(xLimit, INPUT_PULLUP);
   pinMode(yLimit, INPUT_PULLUP);
   pinMode(stepPinX, OUTPUT);
@@ -186,6 +190,7 @@ void setup() {
   digitalWrite(dirPinX, LOW);
   stepperX.setAcceleration(1000);
   stepperX.setMaxSpeed(2000);
+  stepperX.setPinsInverted(true, false, false);
   stepperY.setAcceleration(1000);
   stepperY.setMaxSpeed(2000);
 
