@@ -30,18 +30,22 @@ const int stepPinX = D1;
 const int dirPinX = D5;
 const int stepPinY = D3;
 const int dirPinY = D2;
-float pulleyDiamX = 18.7;
-float pulleyDiamY = 12.22;
-const int xMicrosteps = 16;
-const int yMicrosteps = 16;
+float pulleyDiamY = 18.7;
+float pulleyDiamX = 12.22;
+const float xMicrosteps = 0.75;
+const float yMicrosteps = 0.75;
 const int stepsPerRev = 200;
 
 const float xMmtoSteps = (xMicrosteps*stepsPerRev)/(pulleyDiamX*PI);
 const float yMmtoSteps = (yMicrosteps*stepsPerRev)/(pulleyDiamY*PI);
 
+const int MAX_X_DIST = 457; //mm
+const int MAX_X_STEPS = MAX_X_DIST * xMmtoSteps;
+
+
 const int servoPin = D4;
 const int SERVO_DOWN = 0;
-const int SERVO_UP = 90;
+const int SERVO_UP = 140;
 volatile bool isHoming = false;
 
 AccelStepper stepperX(AccelStepper::DRIVER, stepPinX, dirPinX);
@@ -67,17 +71,19 @@ volatile bool updateServo = true;
 const float CIRCLE_CX = 10.0;   // mm from home corner
 const float CIRCLE_CY = 10.0;
 const float CIRCLE_R  = 5.0;
-const int   CIRCLE_SEGMENTS = 48;
+const int   CIRCLE_SEGMENTS = 24;
 const float DOT_R = 0.8;        // the dot in the middle
 const int   DOT_SEGMENTS = 8;
 const float DRAW_SPEED = 1200;  // steps/s
-const float DRAW_ACCEL = 4000;  // steps/s^2
+const float DRAW_ACCEL = 1000;  // steps/s^2
 volatile bool drawCircle = false;
 
 // blocking move, both axes scaled so they arrive together
 void moveToMm(float xmm, float ymm) {
   long tx = lroundf(xmm * xMmtoSteps);
   long ty = lroundf(ymm * yMmtoSteps);
+  tx = constrain(tx, 0L, (long)MAX_X_STEPS);   // same guard as the websocket path
+  if (ty < 0) ty = 0;
   long dx = labs(tx - stepperX.currentPosition());
   long dy = labs(ty - stepperY.currentPosition());
   if (dx == 0 && dy == 0) return;          // avoids a 0/0 speed ratio
@@ -120,7 +126,7 @@ void ring(float cx, float cy, float r, int segs) {
 void setup() {
   Serial.begin(115200);
   WiFi.mode(WIFI_AP);
-  WiFi.softAP("esp-captive");
+  WiFi.softAP("esp-captive claudia's team");
   pinMode(xLimit, INPUT_PULLUP);
   pinMode(yLimit, INPUT_PULLUP);
   pinMode(stepPinX, OUTPUT);
@@ -202,6 +208,7 @@ void setup() {
       }
     }
     long targetXPosSteps = targetXPos * xMmtoSteps;
+    targetXPosSteps = constrain(targetXPosSteps, 0, MAX_X_STEPS);
     long targetYPosSteps = targetYPos * yMmtoSteps;
 
     Serial.printf("targetXPosSteps %ld, targetYPosSteps: %ld\n", targetXPosSteps, targetYPosSteps);
