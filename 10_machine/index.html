@@ -169,11 +169,23 @@ G4 P250</code></pre>
 
       <p>For convenience, we created <a href="https://github.com/claudiamp/phys-s-12/blob/main/10_machine/src/src/trace.py" target="_blank">a script</a> that calls the vectorize and gcode script and also renders a preview of the exact route the pen will take, which is <i>not</i> the same thing as the image that went in: it is the drawing after thresholding, thinning and simplification. Checking the preview first saved a lot of paper.</p>
 
-      <div class="img-duo">
-        <img src="./Assets/line-art.png" alt="Line art generated from the photo">
-        <img src="./Assets/gcode-preview.png" alt="Preview of the pen path generated from the line art">
+      <div id="slideshow3" class="slideshow-container">
+        <div class="slides">
+          <img src="./Assets/group-photo.jpeg" alt="The original photo that goes into the pipeline">
+          <p class="caption"><i>The original photo</i></p>
+        </div>
+        <div class="slides">
+          <img src="./Assets/line-art.png" alt="Line art generated from the photo">
+          <p class="caption"><i>The line art from step 1</i></p>
+        </div>
+        <div class="slides">
+          <img src="./Assets/gcode-preview.png" alt="Preview of the pen path generated from the line art">
+          <p class="caption"><i>The actual pen route from the G-code</i></p>
+        </div>
+
+        <a class="prev" onclick="plusSlides(-1, 'slideshow3')">&#10094;</a>
+        <a class="next" onclick="plusSlides(1, 'slideshow3')">&#10095;</a>
       </div>
-      <p class="caption"><i>Left: the line art from step 1. Right: the actual pen route from the G-code</i></p>
 
       <h3>Sending it to the machine</h3>
 
