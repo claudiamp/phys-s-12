@@ -53,6 +53,11 @@ const float yMmtoSteps = (yMicrosteps*stepsPerRev)/(pulleyDiamY*PI);
 const int servoPin = D4;
 const int SERVO_DOWN = 90;
 const int SERVO_UP = 160;
+
+// Below 150ms of settle the pen starts missing the first bit of each stroke.
+const int PEN_STEP_MS   = 2;    // per degree while ramping
+const int PEN_SETTLE_MS = 150;  // after arriving, before the gantry moves
+
 volatile bool isHoming = false;
 
 AccelStepper stepperX(AccelStepper::DRIVER, stepPinX, dirPinX);
@@ -81,14 +86,19 @@ const float CIRCLE_R  = 20.0;
 const int   CIRCLE_SEGMENTS = 48;
 const float DOT_R = 0.8;        // the dot in the middle
 const int   DOT_SEGMENTS = 8;
-const float DRAW_SPEED = 1200;  // steps/s
-const float DRAW_ACCEL = 4000;  // steps/s^2
+// Segments average about 1.5mm and every one is its own blocking move, so
+// acceleration sets the pace, not top speed. Lower DRAW_ACCEL first if lines
+// come out wobbly or drawings land offset.
+const float DRAW_SPEED = 2000;  // steps/s, about 24 mm/s
+const float DRAW_ACCEL = 12000; // steps/s^2
+
+// G0 is pen-up travel, G1 is drawing.
+const float TRAVEL_SPEED = 2400; // steps/s, about 29 mm/s
+const float TRAVEL_ACCEL = 8000; // steps/s^2
 volatile bool drawCircle = false;
 
 // ---- gcode file ----
-// Measured travel, not the frame size. runFile() aborts a job the moment a
-// move lands outside this, so it has to cover the far corner of the top row:
-// a drawing whose origin is y=130 reaches roughly y=225.
+// Measured travel. runFile() aborts a job that moves outside this.
 const float BED_W_MM = 350.0;
 const float BED_H_MM = 250.0;
 volatile bool drawFile = false;
@@ -97,14 +107,14 @@ float originXmm = 0;            // where the job starts, captured when 'g' runs
 float originYmm = 0;
 
 // blocking move, both axes scaled so they arrive together
-void moveToMm(float xmm, float ymm) {
+void moveToMm(float xmm, float ymm, float speed = DRAW_SPEED, float accel = DRAW_ACCEL) {
   long tx = lroundf(xmm * xMmtoSteps);
   long ty = lroundf(ymm * yMmtoSteps);
   long dx = labs(tx - stepperX.currentPosition());
   long dy = labs(ty - stepperY.currentPosition());
   if (dx == 0 && dy == 0) return;          // avoids a 0/0 speed ratio
 
-  float vx = DRAW_SPEED, vy = DRAW_SPEED, ax = DRAW_ACCEL, ay = DRAW_ACCEL;
+  float vx = speed, vy = speed, ax = accel, ay = accel;
   if (dx >= dy) { float k = (float)dy / (float)dx; vy = fmaxf(vy * k, 1.0f); ay = fmaxf(ay * k, 1.0f); }
   else          { float k = (float)dx / (float)dy; vx = fmaxf(vx * k, 1.0f); ax = fmaxf(ax * k, 1.0f); }
 
@@ -121,11 +131,11 @@ void penTo(int target) {
   static int actual = SERVO_UP;          // setup() leaves it here
   if (target == actual) return;          // already there, nothing to do
   int inc = (target > actual) ? 1 : -1;
-  for (int i = actual; i != target; i += inc) { servo.write(i); delay(5); }
+  for (int i = actual; i != target; i += inc) { servo.write(i); delay(PEN_STEP_MS); }
   servo.write(target);
   actual = target;
   servoPos = target;
-  delay(150);
+  delay(PEN_SETTLE_MS);
 }
 
 void ring(float cx, float cy, float r, int segs) {
@@ -152,10 +162,7 @@ float getWord(const char *s, char letter, float def) {
 }
 
 void runFile() {
-  // A stop pressed while nothing was drawing latches this flag with no job
-  // running to clear it, and then every job after that exits before drawing a
-  // single line. Start every job from a clean slate.
-  stopFile = false;
+  stopFile = false;          // a stop pressed while idle must not kill this job
 
   File f = LittleFS.open("/job.gcode", FILE_READ);
   if (!f) { Serial.println("no job file"); return; }
@@ -192,19 +199,15 @@ void runFile() {
         offBed = true;
         break;
       }
-      moveToMm(px, py);
+      if (g == 0) moveToMm(px, py, TRAVEL_SPEED, TRAVEL_ACCEL);
+      else        moveToMm(px, py);
     }
   }
 
   f.close();
   penTo(SERVO_UP);
 
-  // Tell whoever is listening how this ended. Without it the server has no way
-  // to know a job finished -- it would sit there claiming the machine is still
-  // drawing until somebody clicked a button.
-  //
-  // The three endings are not the same thing: only "done" means the whole file
-  // was drawn, and only that one should be filed as a finished drawing.
+  // Only "done" means the whole file was drawn.
   const char *how = stopFile ? "stopped" : (offBed ? "aborted" : "done");
   ws.textAll(how);
 
@@ -212,10 +215,8 @@ void runFile() {
   Serial.printf("file %s\n", how);
 }
 
-// Join the network from secrets.h. If it isn't there after STA_TIMEOUT_MS,
-// host the old access point instead so the machine is never unreachable.
-// Either way we come up as MDNS_NAME.local, so nothing downstream has to care
-// which mode won.
+// Join the network from secrets.h, or host the old access point if it is not
+// there. Either way we answer to MDNS_NAME.local.
 void startNetwork() {
   WiFi.mode(WIFI_STA);
   WiFi.setSleep(false);            // keep the server responsive
@@ -232,8 +233,7 @@ void startNetwork() {
 
   if (WiFi.status() == WL_CONNECTED) {
     Serial.print("connected, IP ");
-    Serial.println(WiFi.localIP());   // <- write this down, it's the fallback
-                                      //    for when mDNS is filtered
+    Serial.println(WiFi.localIP());   // the fallback when mDNS is filtered
   } else {
     Serial.println("no network, falling back to the access point");
     WiFi.mode(WIFI_AP);
@@ -242,7 +242,7 @@ void startNetwork() {
     Serial.println(WiFi.softAPIP());
   }
 
-  // Has to come after the connection settles, not in setup() before it.
+  // After the connection settles, not before it.
   if (MDNS.begin(MDNS_NAME)) {
     MDNS.addService("http", "tcp", 80);
     Serial.printf("http://%s.local\n", MDNS_NAME);
@@ -398,7 +398,7 @@ void loop() {
     stepperX.setCurrentPosition(0);
     stepperY.setCurrentPosition(0);
     isHoming = false;
-    ws.textAll("homed");     // homing is slow and silent; say when it is over
+    ws.textAll("homed");
   }
 
   if(drawCircle){

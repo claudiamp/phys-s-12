@@ -16,18 +16,23 @@ import threading
 import time
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify, render_template, request, send_from_directory
-
-import pipeline
-from jobs import JobStore
-from machine import Machine, MachineError, MachineOffline
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-load_dotenv()
+# Loaded BEFORE importing pipeline, and that ordering matters: gcode.py reads
+# PEN_UP_CMD / PEN_DOWN_CMD / PEN_DELAY_MS into module constants at import
+# time. Load the .env after that import and those settings silently do
+# nothing, which is a maddening thing to debug.
+load_dotenv(os.path.join(HERE, ".env"))
 # The OpenAI key already lives in the week 10 pipeline's .env. Reuse it rather
 # than keeping a second copy; anything set here or in the environment wins.
 load_dotenv(os.path.join(HERE, "..", "..", "src", ".env"), override=False)
+
+from flask import Flask, jsonify, render_template, request, send_from_directory  # noqa: E402
+
+import pipeline                                            # noqa: E402
+from jobs import JobStore                                   # noqa: E402
+from machine import Machine, MachineError, MachineOffline   # noqa: E402
 
 PLOTTER_HOST = os.environ.get("PLOTTER_HOST", "plotter.local")
 GCODE_DIR = os.path.abspath(
@@ -80,13 +85,19 @@ def on_machine_event(message):
     filed as done with a slot they never really occupied.
     """
     job = store.get(current["id"]) if current["id"] else None
+    elapsed = (int(time.monotonic() - current["started"])
+               if current["started"] is not None else None)
 
     if message == "done":
         if job is not None and job.state == "queue":
             data = job.meta()
             store.move(job, "done",
                        sheet=data.get("sheet", store.sheet()),
-                       slot=data.get("slot", current["slot"]))
+                       slot=data.get("slot", current["slot"]),
+                       # What it really took, against what we predicted. This
+                       # is what ESTIMATE_SCALE gets re-derived from.
+                       plot_seconds=elapsed,
+                       predicted_seconds=current["estimate"])
         _clear_current()
 
     elif message in ("stopped", "aborted"):
@@ -203,6 +214,7 @@ def console():
         host=PLOTTER_HOST,
         gcode_dir=GCODE_DIR,
         styles=pipeline.ALL_STYLES,
+        plot_rotate=pipeline.ROTATE_180,
     )
 
 

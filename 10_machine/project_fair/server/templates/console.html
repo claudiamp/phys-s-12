@@ -80,6 +80,13 @@
     .cell.used { background: #eceeed; border-style: solid; color: var(--fg); font-weight: 600; }
     .cell.sel { border: 2px solid var(--fg); color: var(--fg); }
 
+    /* The G-code is turned 180 so the drawing faces the visitors. The file
+       stays as-plotted; only this view spins it back so it reads right way up
+       for whoever is reviewing it. The line art is never rotated. */
+    {% if plot_rotate %}
+    .route img, .job img { transform: rotate(180deg); }
+    {% endif %}
+
     #log { margin-top: 0.6rem; font-family: ui-monospace, monospace; font-size: 0.75rem;
            line-height: 1.6; height: 7rem; overflow-y: auto; white-space: pre-wrap;
            color: var(--muted); }
