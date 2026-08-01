@@ -777,6 +777,8 @@ void loop() {
 
       <p>The other changes were small: the board now reports over the WebSocket how a job ended, so the console knows when a drawing is finished instead of waiting for someone to click a button, and the bed size constants were corrected to the real measured travel.</p>
 
+      <p>We also tweaked a few settings to make it draw faster, because a chibi was taking around ten minutes. Travel moves now run at their own speed instead of drawing speed, the duplicated pause after every pen lift was removed, and the servo sweep was sped up as far as it would go without clipping the start of a stroke. The biggest win was acceleration rather than top speed: the strokes are so short, about 1.5 mm on average, that the machine almost never reaches its top speed before it has to stop again, so raising the acceleration cut far more time than raising the speed ever could. Together those took a typical drawing from ten minutes to under three.</p>
+
     </section>
   </body>
 
