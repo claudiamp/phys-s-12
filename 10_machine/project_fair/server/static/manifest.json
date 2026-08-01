@@ -1,0 +1,9 @@
+{
+  "name": "Draw me",
+  "short_name": "Draw me",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#f6f6f6",
+  "theme_color": "#f6f6f6"
+}

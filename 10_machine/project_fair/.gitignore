@@ -1,0 +1,22 @@
+# Secrets. secrets.example.h and .env.example are committed instead.
+firmware/secrets.h
+server/.env
+
+# TLS keys from certs.sh. Regenerate with ./certs.sh on any machine; the
+# private key should never be in a repo, least of all a public one.
+server/certs/
+
+# Local Python
+server/.venv/
+__pycache__/
+*.pyc
+
+# Arduino build output, if a build ever lands in the sketch folder
+firmware/build/
+
+# Everything visitors make at the fair: photos of people, their line art, and
+# the G-code. Faces of strangers do not belong in version control. The folders
+# themselves are kept, so the layout is obvious on a fresh clone -- and the
+# server creates whatever is missing at startup anyway.
+server/jobs/*/*
+!server/jobs/*/.gitkeep

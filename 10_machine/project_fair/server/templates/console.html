@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Plotter console</title>
+  <style>
+    :root {
+      --bg: #f1f2f1; --panel: #fff; --fg: #1e2c28; --line: #dcdedd;
+      --muted: #78827f; --ok: #0b9b6a; --bad: #c0392b; --warn: #b8860b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background: var(--bg); color: var(--fg);
+      padding: 1.25rem; font-size: 14px;
+    }
+    h1 { font-size: 1.15rem; }
+    h2 { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em;
+         color: var(--muted); margin-bottom: 0.6rem; }
+    .panel { background: var(--panel); border: 1px solid var(--line);
+             border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
+    .row { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+    .grid { display: grid; grid-template-columns: 20rem 1fr; gap: 1rem; align-items: start; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+    button {
+      font: inherit; padding: 0.55rem 0.95rem; border-radius: 7px;
+      border: 1px solid var(--line); background: #fff; color: var(--fg); cursor: pointer;
+    }
+    button:hover:not(:disabled) { border-color: #9aa3a0; }
+    button:disabled { opacity: 0.35; cursor: not-allowed; }
+    button.primary { background: var(--fg); color: #fff; border-color: var(--fg); }
+    button.danger { color: var(--bad); border-color: #e3b5ae; }
+    button.big { padding: 0.85rem 1.6rem; font-size: 1rem; font-weight: 600; }
+    select, input[type=number] { font: inherit; padding: 0.5rem; border-radius: 7px;
+                                 border: 1px solid var(--line); background: #fff; }
+    input[type=number] { width: 5rem; }
+
+    /* status */
+    #status { display: flex; align-items: center; gap: 0.6rem; justify-content: space-between; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: #bbb; flex: none; }
+    .dot.on { background: var(--ok); } .dot.off { background: var(--bad); }
+    #nowDrawing { color: var(--warn); font-weight: 600; }
+
+    /* queue */
+    .jobs { display: flex; flex-direction: column; gap: 0.4rem; max-height: 30rem; overflow-y: auto; }
+    .job {
+      display: flex; gap: 0.7rem; align-items: center; text-align: left;
+      width: 100%; padding: 0.5rem; border-radius: 8px;
+      border: 1px solid var(--line); background: #fff; cursor: pointer;
+    }
+    .job.sel { border-color: var(--fg); box-shadow: 0 0 0 1px var(--fg); }
+    .job img { width: 44px; height: 44px; object-fit: contain; background: #fff;
+               border: 1px solid var(--line); border-radius: 5px; flex: none; }
+    .job .no { font-weight: 700; }
+    .job .meta { color: var(--muted); font-size: 0.8rem; }
+    .empty { color: var(--muted); font-size: 0.85rem; padding: 0.5rem 0; }
+    .tabs { display: flex; gap: 0.3rem; margin-bottom: 0.7rem; }
+    .tabs button { padding: 0.35rem 0.7rem; font-size: 0.82rem; }
+    .tabs button.on { background: var(--fg); color: #fff; border-color: var(--fg); }
+
+    /* detail */
+    .detail { display: grid; grid-template-columns: 1fr 10rem; gap: 1rem; }
+    @media (max-width: 700px) { .detail { grid-template-columns: 1fr; } }
+    .route { border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+    .route img { width: 100%; display: block; }
+    .lineart img { width: 100%; display: block; border: 1px solid var(--line);
+                   border-radius: 8px; background: #fff; }
+    .stat { font-size: 1.35rem; font-weight: 700; }
+    .cap { color: var(--muted); font-size: 0.8rem; }
+    .slow { color: var(--bad); }
+
+    /* sheet */
+    .sheet { display: grid; gap: 4px; }
+    .cell {
+      aspect-ratio: 1; border: 1px dashed var(--line); border-radius: 6px;
+      background: #fff; cursor: pointer; font-size: 0.7rem; color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cell.used { background: #eceeed; border-style: solid; color: var(--fg); font-weight: 600; }
+    .cell.sel { border: 2px solid var(--fg); color: var(--fg); }
+
+    #log { margin-top: 0.6rem; font-family: ui-monospace, monospace; font-size: 0.75rem;
+           line-height: 1.6; height: 7rem; overflow-y: auto; white-space: pre-wrap;
+           color: var(--muted); }
+  </style>
+</head>
+<body>
+
+  <div class="panel" id="status">
+    <div class="row"><span class="dot" id="dot"></span><span id="statusText">checking…</span></div>
+    <div id="nowDrawing"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Machine</h2>
+    <div class="row">
+      <button onclick="machine('home')">Home</button>
+      <button onclick="machine('pen_up')">Pen up</button>
+      <button onclick="machine('pen_down')">Pen down</button>
+      <button onclick="machine('circle')">Test circle</button>
+      <button class="danger" onclick="machine('stop')">Stop</button>
+      <span style="flex:1"></span>
+      X <input type="number" id="jogX" value="0" min="0" max="350">
+      Y <input type="number" id="jogY" value="0" min="0" max="250">
+      <button onclick="jog()">Jog</button>
+    </div>
+    <p class="cap" style="margin-top:0.6rem">
+      Home once per sheet — a full seek is about a minute. Homing and pen commands
+      do nothing while a job is drawing; only Stop gets through.
+    </p>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="panel">
+        <h2>Jobs</h2>
+        <div class="tabs" id="tabs"></div>
+        <div class="jobs" id="jobs"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Sheet <span id="sheetNo"></span></h2>
+        <div class="sheet" id="sheet"></div>
+        <div class="row" style="margin-top:0.7rem">
+          <button onclick="newSheet()">New sheet</button>
+          <span class="cap" id="slotHint">Click a cell to jog there</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="detailPanel">
+      <h2>Preview</h2>
+      <div id="detail"><p class="empty">Pick a job to check it before it plots.</p></div>
+      <div id="log"></div>
+    </div>
+  </div>
+
+<script>
+  const STYLES = {{ styles | tojson }};
+  let tab = 'queue';
+  let selected = null;
+  let slot = null;
+  let jobsCache = {};
+  let drawing = null;   // what the server believes is on the machine
+
+  const $ = id => document.getElementById(id);
+
+  function log(msg) {
+    $('log').textContent = `${new Date().toLocaleTimeString()}  ${msg}\n` + $('log').textContent;
+  }
+
+  async function call(url, opts) {
+    const res = await fetch(url, opts);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || res.statusText);
+    return data;
+  }
+  const post = (url, body) => call(url, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body || {})
+  });
+
+  // --- machine -------------------------------------------------------
+
+  async function machine(action) {
+    try { await post(`/api/machine/${action}`); log(`sent ${action}`); }
+    catch (e) { log(`${action} failed: ${e.message}`); }
+  }
+
+  async function jog() {
+    const x = Number($('jogX').value), y = Number($('jogY').value);
+    try { await post('/api/machine/jog', { x, y }); log(`jog ${x},${y}`); }
+    catch (e) { log(`jog failed: ${e.message}`); }
+  }
+
+  // --- jobs ----------------------------------------------------------
+
+  function estimate(stats) {
+    if (!stats) return '';
+    const m = Math.floor(stats.estimated_seconds / 60);
+    const s = String(stats.estimated_seconds % 60).padStart(2, '0');
+    return `${stats.paths} strokes · ~${m}m${s}s`;
+  }
+
+  async function refresh() {
+    try { jobsCache = await call('/api/console/jobs'); } catch { return; }
+    const order = ['queue', 'working', 'failed', 'done'];
+    $('tabs').innerHTML = order.map(name =>
+      `<button class="${name === tab ? 'on' : ''}" onclick="setTab('${name}')">
+         ${name} ${jobsCache[name] ? jobsCache[name].length : 0}</button>`).join('');
+
+    const list = jobsCache[tab] || [];
+    $('jobs').innerHTML = list.length ? list.map(j => `
+      <div class="job ${j.id === selected ? 'sel' : ''}" onclick="select('${j.id}')">
+        ${j.has_preview ? `<img src="/api/job/${j.id}/file/preview.svg">` : '<img>'}
+        <div>
+          <div><span class="no">#${Number(j.id)}</span> <span class="meta">${j.style || ''}</span></div>
+          <div class="meta">${estimate(j.stats) || j.reason || j.error || j.state}</div>
+        </div>
+      </div>`).join('') : '<p class="empty">nothing here</p>';
+
+    if (selected) showDetail();
+  }
+
+  function setTab(name) { tab = name; refresh(); }
+  function select(id) { selected = id; refresh(); }
+
+  function findJob(id) {
+    for (const state in jobsCache) {
+      const hit = (jobsCache[state] || []).find(j => j.id === id);
+      if (hit) return hit;
+    }
+    return null;
+  }
+
+  function showDetail() {
+    const j = findJob(selected);
+    if (!j) { selected = null; $('detail').innerHTML = '<p class="empty">Pick a job.</p>'; return; }
+
+    // Anything much over five minutes is worth catching before it starts.
+    const slow = j.stats && j.stats.estimated_seconds > 300;
+
+    $('detail').innerHTML = `
+      <div class="detail">
+        <div>
+          <div class="route">
+            ${j.has_preview ? `<img src="/api/job/${j.id}/file/preview.svg">`
+                            : '<p class="empty" style="padding:2rem;text-align:center">no preview</p>'}
+          </div>
+          <p class="cap" style="margin-top:0.4rem">The route the pen takes — not the line art.</p>
+        </div>
+        <div class="lineart">
+          ${j.has_line_art ? `<img src="/api/job/${j.id}/file/line_art.png">` : ''}
+          <p class="cap" style="margin-top:0.4rem">What the AI drew</p>
+        </div>
+      </div>
+
+      <div style="margin-top:1rem">
+        <div class="stat ${slow ? 'slow' : ''}">${estimate(j.stats) || '—'}</div>
+        <p class="cap">#${Number(j.id)} · ${j.style || '?'} · ${j.state}
+           ${j.slot ? ' · slot ' + j.slot : ''}${j.error ? ' · ' + j.error : ''}</p>
+        ${slow ? '<p class="cap slow">Long job. Retrace harder or regenerate before plotting.</p>' : ''}
+      </div>
+
+      <div class="row" style="margin-top:1rem">
+        <button class="primary big" onclick="plot()"
+                ${j.has_gcode && !(drawing && drawing !== j.id) ? '' : 'disabled'}>
+          Plot${slot ? ' at ' + slot : ''}</button>
+        <button class="big" onclick="markDone()">Mark done</button>
+      </div>
+      ${drawing && drawing !== j.id
+        ? `<p class="cap slow">#${Number(drawing)} is still drawing. Stop it, or mark it
+             done once the pen stops.</p>` : ''}
+
+      <div class="row" style="margin-top:0.8rem">
+        <button onclick="retrace()">Simplify harder</button>
+        <select id="restyle">
+          ${STYLES.map(s => `<option ${s === j.style ? 'selected' : ''}>${s}</option>`).join('')}
+        </select>
+        <button onclick="regenerate()">Regenerate</button>
+        <span style="flex:1"></span>
+        <button class="danger" onclick="del()">Delete</button>
+      </div>
+      <p class="cap" style="margin-top:0.6rem">
+        Simplify harder is free and takes seconds. Regenerate costs an API call.</p>
+    `;
+  }
+
+  // --- actions -------------------------------------------------------
+
+  async function plot() {
+    if (!slot && !confirm('No slot picked — plot wherever the head is sitting?')) return;
+    try {
+      await post(`/api/console/job/${selected}/plot`, { slot });
+      log(`plotting #${Number(selected)}${slot ? ' at ' + slot : ''}`);
+      refresh(); loadSheet();
+    } catch (e) { log(`plot failed: ${e.message}`); }
+  }
+
+  async function markDone() {
+    try {
+      await post(`/api/console/job/${selected}/done`, slot ? { slot } : {});
+      log(`#${Number(selected)} done`);
+      selected = null; refresh(); loadSheet();
+    } catch (e) { log(`failed: ${e.message}`); }
+  }
+
+  async function retrace() {
+    try {
+      const r = await post(`/api/console/job/${selected}/retrace`,
+                           { simplify: 3.0, min_points: 20 });
+      log(`#${Number(selected)} retraced → ${r.stats.paths} strokes`);
+      refresh();
+    } catch (e) { log(`retrace failed: ${e.message}`); }
+  }
+
+  async function regenerate() {
+    const style = $('restyle').value;
+    if (!confirm(`Regenerate #${Number(selected)} as ${style}? This costs an API call.`)) return;
+    try {
+      await post(`/api/console/job/${selected}/regenerate`, { style });
+      log(`#${Number(selected)} regenerating as ${style}`);
+      refresh();
+    } catch (e) { log(`regenerate failed: ${e.message}`); }
+  }
+
+  async function del() {
+    if (!confirm(`Delete #${Number(selected)}?`)) return;
+    try {
+      await call(`/api/console/job/${selected}`, { method: 'DELETE' });
+      log(`#${Number(selected)} deleted`);
+      selected = null; refresh();
+    } catch (e) { log(`delete failed: ${e.message}`); }
+  }
+
+  // --- sheet ---------------------------------------------------------
+
+  async function loadSheet() {
+    let data;
+    try { data = await call('/api/console/sheet'); } catch { return; }
+    $('sheetNo').textContent = data.sheet;
+    $('sheet').style.gridTemplateColumns = `repeat(${data.cols}, 1fr)`;
+    $('sheet').innerHTML = data.cells.map(c => `
+      <div class="cell ${c.used_by ? 'used' : ''} ${c.slot === slot ? 'sel' : ''}"
+           onclick="goSlot('${c.slot}')">
+        ${c.used_by ? '#' + Number(c.used_by) : c.slot}
+      </div>`).join('');
+  }
+
+  async function goSlot(name) {
+    slot = name;
+    try {
+      await post(`/api/console/slot/${name}/go`);
+      log(`jogging to ${name} — wait for it to stop before plotting`);
+    } catch (e) { log(`jog failed: ${e.message}`); }
+    loadSheet(); if (selected) showDetail();
+  }
+
+  async function newSheet() {
+    if (!confirm('Fresh paper? Every slot becomes free again.')) return;
+    const r = await post('/api/console/sheet/new');
+    slot = null;
+    log(`sheet ${r.sheet}`);
+    loadSheet();
+  }
+
+  // --- status --------------------------------------------------------
+
+  async function pollStatus() {
+    try {
+      const s = await call('/api/machine/status');
+      $('dot').className = 'dot ' + (s.connected ? 'on' : 'off');
+      $('statusText').textContent = s.connected
+        ? `connected to ${s.host}`
+        : `not connected to ${s.host}${s.error ? ' — ' + s.error : ''}`;
+      const was = drawing;
+      drawing = s.current && s.current.id ? s.current.id : null;
+
+      if (drawing) {
+        const c = s.current;
+        const mins = Math.floor((c.elapsed || 0) / 60);
+        const secs = String((c.elapsed || 0) % 60).padStart(2, '0');
+        const est = c.estimate
+          ? ` / ~${Math.floor(c.estimate / 60)}m${String(c.estimate % 60).padStart(2, '0')}s`
+          : '';
+        $('nowDrawing').textContent =
+          `drawing #${Number(drawing)}${c.slot ? ' at ' + c.slot : ''} · ${mins}m${secs}${est}` +
+          (c.overdue ? ' · should be finished' : '');
+      } else {
+        $('nowDrawing').textContent = '';
+      }
+
+      if (was !== drawing) {
+        // The board reports how a job ended, so this clears itself.
+        if (was && !drawing) { log(`#${Number(was)} finished`); refresh(); loadSheet(); }
+        if (selected) showDetail();
+      }
+    } catch {
+      $('dot').className = 'dot off';
+      $('statusText').textContent = 'server unreachable';
+    }
+  }
+
+  refresh(); loadSheet(); pollStatus();
+  setInterval(refresh, 3000);
+  setInterval(pollStatus, 2000);
+</script>
+</body>
+</html>

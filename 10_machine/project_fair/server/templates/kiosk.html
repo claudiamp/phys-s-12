@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Draw me">
+  <link rel="manifest" href="/static/manifest.json">
+  <title>Draw me</title>
+  <style>
+    :root {
+      --bg: #f6f6f6;
+      --fg: #1e2c28;
+      --line: #dcdcdc;
+      --muted: #7a8582;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { min-height: 100%; }
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 3vh 5vw;
+      text-align: center;
+      user-select: none;
+      /* Never clip. A flex-centred child taller than the viewport loses its
+         top edge with no way to reach it, which is exactly what happened
+         once the viewfinder went in. */
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .screen.on { margin: auto; }
+
+    .screen { display: none; width: 100%; max-width: 46rem; }
+    .screen.on { display: block; animation: in 0.25s ease; }
+    @keyframes in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; } }
+
+    h1 { font-size: clamp(2.4rem, 7vw, 4.5rem); font-weight: 700; line-height: 1.05; }
+    h2 { font-size: clamp(1.6rem, 4.5vw, 2.6rem); font-weight: 600; margin-bottom: 0.5rem; }
+    p  { font-size: clamp(1.05rem, 2.4vw, 1.4rem); color: var(--muted); line-height: 1.5; }
+    .spacer { height: 2.5rem; }
+    .gap { height: clamp(0.9rem, 2.2vh, 1.8rem); }   /* shrinks on short screens */
+    .small { font-size: 0.95rem; }
+
+    button, .btn {
+      display: inline-block;
+      font: inherit;
+      font-size: clamp(1.15rem, 2.6vw, 1.5rem);
+      font-weight: 600;
+      padding: 1.15rem 2.4rem;
+      border-radius: 999px;
+      border: 2px solid var(--fg);
+      background: var(--fg);
+      color: var(--bg);
+      cursor: pointer;
+      min-width: 12rem;
+    }
+    .btn.ghost, button.ghost { background: none; color: var(--fg); }
+    button:disabled { opacity: 0.35; }
+
+    /* style picker */
+    .styles { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; }
+    .style {
+      background: #fff; border: 2px solid var(--line); border-radius: 1.5rem;
+      padding: 1rem 1rem 1.4rem; cursor: pointer; width: min(19rem, 42vw);
+    }
+    .style:active { border-color: var(--fg); }
+    .style img { width: 100%; display: block; }
+    .style span { display: block; font-size: 1.4rem; font-weight: 600; margin-top: 0.4rem; }
+
+    .ticket { font-size: clamp(4rem, 16vw, 9rem); font-weight: 700; line-height: 1; }
+
+    .spinner {
+      width: 3.5rem; height: 3.5rem; margin: 0 auto 2rem;
+      border: 4px solid var(--line); border-top-color: var(--fg);
+      border-radius: 50%; animation: spin 0.9s linear infinite;
+      /* own layer: Safari sometimes never starts an animation on an element
+         that was display:none at load, and a promoted layer is more reliable */
+      will-change: transform;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    input[type=file] { display: none; }
+
+    /* viewfinder — portrait, and always short enough to leave room for the
+       heading above it and the shutter below. Sized off the viewport height
+       on purpose: capping by width is what pushed the top of the page off an
+       iPad screen. */
+    .viewfinder {
+      position: relative;
+      height: min(44vh, 22rem);
+      aspect-ratio: 3 / 4;
+      margin: 0 auto; border-radius: 1.5rem; overflow: hidden;
+      background: #111;
+    }
+    .viewfinder video {
+      width: 100%; height: 100%; object-fit: cover;
+      transform: scaleX(-1);            /* selfie view, and we capture it the same way */
+    }
+    /* A head, not a portrait. Sized so someone stands at arm's length and
+       still gets their shoulders in, which is what the pipeline wants. */
+    .guide {
+      position: absolute; left: 50%; top: 40%;
+      transform: translate(-50%, -50%);
+      width: 48%; height: 46%;
+      border: 3px dashed rgba(255, 255, 255, 0.85);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .count {
+      position: absolute; inset: 0; display: none;
+      align-items: center; justify-content: center;
+      font-size: 9rem; font-weight: 700; color: #fff;
+      text-shadow: 0 2px 24px rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.15);
+    }
+    .count.on { display: flex; }
+    .flash {
+      position: fixed; inset: 0; background: #fff; opacity: 0;
+      pointer-events: none; transition: opacity 0.35s ease;
+    }
+    .flash.on { opacity: 1; transition: none; }
+  </style>
+</head>
+<body>
+
+  <!-- 1 ------------------------------------------------------------- -->
+  <section id="attract" class="screen on" onclick="show('style')">
+    <h1>Let the machine<br>draw you</h1>
+    <div class="spacer"></div>
+    <p>Take a photo. A robot draws it with a pen.</p>
+    <div class="spacer"></div>
+    <span class="btn">Start</span>
+  </section>
+
+  <!-- 2 ------------------------------------------------------------- -->
+  <section id="style" class="screen">
+    <h2>Pick a look</h2>
+    <p>Same photo, two ways.</p>
+    <div class="spacer"></div>
+    <div class="styles">
+      <div class="style" onclick="pick('chibi')">
+        <img src="/static/samples/chibi.png" alt="Chibi example: huge head, tiny body">
+        <span>Chibi</span>
+      </div>
+      <div class="style" onclick="pick('pixar')">
+        <img src="/static/samples/pixar.png" alt="Cartoon example: large eyes, rounded face">
+        <span>Cartoon</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 ------------------------------------------------------------- -->
+  <section id="capture" class="screen">
+    <h2 id="captureTitle">Smile</h2>
+    <p>Get your head in the oval, shoulders in the picture.</p>
+    <div class="gap"></div>
+
+    <!-- live camera, only if the browser will give it to us -->
+    <div id="stage" hidden>
+      <div class="viewfinder">
+        <video id="video" playsinline muted autoplay></video>
+        <div class="guide"></div>
+        <div class="count" id="count"></div>
+      </div>
+      <div class="gap"></div>
+      <button onclick="startCountdown()" id="shutter">Take photo</button>
+    </div>
+
+    <!-- fallback: the native camera sheet, works without HTTPS -->
+    <div id="filePick" hidden>
+      <label class="btn" for="photo">Take photo</label>
+      <input type="file" id="photo" accept="image/*" capture="user" onchange="fromFile(this)">
+    </div>
+
+    <div class="gap"></div>
+    <p class="small">Your photo goes to OpenAI to make the drawing. We don't keep it.</p>
+    <div class="gap"></div>
+    <button class="ghost" onclick="reset()">Back</button>
+  </section>
+
+  <!-- 4 ------------------------------------------------------------- -->
+  <section id="working" class="screen">
+    <div class="spinner" id="spinner"></div>
+    <h2 id="workingHeading">Generating your sketch</h2>
+    <p id="workingNote">This takes about half a minute.</p>
+  </section>
+
+  <!-- 5 ------------------------------------------------------------- -->
+  <section id="queued" class="screen">
+    <h2>You're in the queue</h2>
+    <div class="spacer"></div>
+    <div class="ticket" id="ticket"></div>
+    <p id="position"></p>
+    <div class="spacer"></div>
+    <p>No peeking — you'll see it when the pen is done.<br>
+       Find your number on the paper.</p>
+    <div class="spacer"></div>
+    <button class="ghost" onclick="reset()">Done</button>
+  </section>
+
+  <!-- 7 ------------------------------------------------------------- -->
+  <section id="oops" class="screen">
+    <h2>That didn't work</h2>
+    <p id="oopsWhy"></p>
+    <div class="spacer"></div>
+    <button onclick="reset()">Start over</button>
+  </section>
+
+  <div class="flash" id="flash"></div>
+
+<script>
+  // The pipeline works at 1024px anyway, and a 12MP photo over wifi is slow
+  // for no benefit. Going through a canvas also turns HEIC into JPEG for free.
+  const MAX_UPLOAD_PX = 1024;
+
+  let style = null;
+  let jobId = null;
+  let poller = null;
+  let idleTimer = null;
+
+  const $ = id => document.getElementById(id);
+
+  function show(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+    $(name).classList.add('on');
+    if (name === 'working') restartSpinner();
+    // Anything but the attract screen gets abandoned eventually.
+    clearTimeout(idleTimer);
+    if (name !== 'attract') idleTimer = setTimeout(reset, 3 * 60 * 1000);
+  }
+
+  // Kick the animation by hand. An element that was display:none when the page
+  // loaded sometimes never starts its animation in Safari, and a still spinner
+  // on a 30 second wait reads as "it has crashed".
+  function restartSpinner() {
+    const s = $('spinner');
+    s.style.animation = 'none';
+    void s.offsetWidth;            // force a reflow so the restart takes
+    s.style.animation = '';
+  }
+
+  function reset() {
+    clearInterval(poller);
+    clearTimeout(idleTimer);
+    closeCamera();          // never leave the camera live on an idle kiosk
+    style = null; jobId = null;
+    $('photo').value = '';
+    show('attract');
+  }
+
+  function pick(s) { style = s; show('capture'); openCamera(); }
+
+  // --- camera --------------------------------------------------------
+  //
+  // getUserMedia only exists in a secure context, so over plain HTTP Safari
+  // does not offer the camera at all. When that happens we fall back to the
+  // native camera sheet, which needs no HTTPS and cannot really break.
+
+  let stream = null;
+
+  async function openCamera() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return useFilePicker();
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 1280 } },
+        audio: false
+      });
+      $('video').srcObject = stream;
+      $('stage').hidden = false;
+      $('filePick').hidden = true;
+    } catch {
+      useFilePicker();          // denied, busy, or no camera
+    }
+  }
+
+  function useFilePicker() {
+    $('stage').hidden = true;
+    $('filePick').hidden = false;
+  }
+
+  function closeCamera() {
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    stream = null;
+    $('video').srcObject = null;
+  }
+
+  async function startCountdown() {
+    $('shutter').disabled = true;
+    const count = $('count');
+    count.classList.add('on');
+    for (const n of [3, 2, 1]) {
+      count.textContent = n;
+      await new Promise(r => setTimeout(r, 800));
+    }
+    count.classList.remove('on');
+    $('flash').classList.add('on');
+    setTimeout(() => $('flash').classList.remove('on'), 60);
+
+    const blob = await grabFrame();
+    $('shutter').disabled = false;
+    closeCamera();
+    sendPhoto(blob);
+  }
+
+  // Crop exactly the region the viewfinder showed, mirrored the same way, and
+  // capped at MAX_UPLOAD_PX. Preview and capture have to agree: cropping
+  // differently here would hand people a picture they never posed for.
+  const FRAME_AR = 3 / 4;                   // must match .viewfinder
+
+  function grabFrame() {
+    const video = $('video');
+    const vw = video.videoWidth, vh = video.videoHeight;
+
+    // largest FRAME_AR rectangle that fits, centred — the same thing
+    // object-fit: cover does on screen
+    let cw = vw, ch = vw / FRAME_AR;
+    if (ch > vh) { ch = vh; cw = vh * FRAME_AR; }
+
+    const scale = Math.min(1, MAX_UPLOAD_PX / Math.max(cw, ch));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(cw * scale);
+    canvas.height = Math.round(ch * scale);
+
+    const ctx = canvas.getContext('2d');
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);                       // what they saw is what they get
+    ctx.drawImage(video, (vw - cw) / 2, (vh - ch) / 2, cw, ch,
+                  0, 0, canvas.width, canvas.height);
+
+    return new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.9));
+  }
+
+  function fail(why) {
+    clearInterval(poller);
+    $('oopsWhy').textContent = why;
+    show('oops');
+  }
+
+  // Downscale in the browser before uploading.
+  function shrink(file) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, MAX_UPLOAD_PX / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(img.src);
+        canvas.toBlob(b => b ? resolve(b) : reject(new Error('could not read that photo')),
+                      'image/jpeg', 0.9);
+      };
+      img.onerror = () => reject(new Error('could not read that photo'));
+      img.src = URL.createObjectURL(file);
+    });
+  }
+
+  async function fromFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    try {
+      sendPhoto(await shrink(file));
+    } catch (e) {
+      fail(e.message);
+    } finally {
+      input.value = '';   // so picking the same file again still fires onchange
+    }
+  }
+
+  async function sendPhoto(blob) {
+    if (!blob) return fail('could not read that photo');
+    show('working');
+    try {
+      const form = new FormData();
+      form.append('photo', blob, 'photo.jpg');
+      form.append('style', style);
+      const res = await fetch('/api/capture', { method: 'POST', body: form });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'upload failed');
+      jobId = data.id;
+      poll();
+    } catch (e) {
+      fail(e.message);
+    }
+  }
+
+  // Poll rather than holding a request open: Safari suspends backgrounded
+  // pages, so a locked iPad would kill a long-lived connection.
+  function poll() {
+    clearInterval(poller);
+    const started = Date.now();
+    let tick = 0;
+    poller = setInterval(async () => {
+      // Ticking dots, driven by this timer rather than by CSS. If the spinner
+      // ever stalls again, these keep moving and the page still looks alive.
+      tick++;
+      $('workingHeading').textContent =
+        'Generating your sketch' + '.'.repeat(1 + tick % 3);
+      try {
+        const res = await fetch(`/api/job/${jobId}`);
+        const job = await res.json();
+        if (job.state === 'queue') {
+          clearInterval(poller);
+          queued(job);
+        } else if (job.state === 'failed') {
+          clearInterval(poller);
+          fail(job.error || 'the drawing could not be made');
+        } else if (Date.now() - started > 120000) {
+          clearInterval(poller);
+          fail('that took too long');
+        } else if (Date.now() - started > 40000) {
+          $('workingNote').textContent = 'Still going, hang on…';
+        }
+      } catch {
+        /* a blip on the wifi is not a failure; the next tick will retry */
+      }
+    }, 1500);
+  }
+
+  // Generation is finished and the job is in the queue. The visitor is told
+  // their number and nothing else -- no preview, on purpose.
+  function queued(job) {
+    $('ticket').textContent = `#${Number(job.id)}`;
+    $('position').textContent = job.position === 1
+      ? 'You are next'
+      : `${job.position - 1} ahead of you`;
+    show('queued');
+  }
+</script>
+</body>
+</html>

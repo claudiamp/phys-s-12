@@ -724,6 +724,59 @@ void loop() {
         </div>
       </div>
 
+      <h2>Project Fair Kiosk</h2>
+
+      <p>Since we decided to showcase the machine at the final project fair, we made the improvements we did not have time for in class. The goal was to turn it from something we drive by hand into something a stranger can walk up to and use.</p>
+
+      <p>First we built a server that manages the whole creation pipeline. It runs on a laptop and has two faces: an iPad app for the visitor, and a console for whoever is operating the machine.</p>
+
+      <h3>The iPad app</h3>
+
+      <p>This is what the visitor sees. They pick a style, take a photo, and get a queue number. They never see the drawing before it is made, the same way you do not watch a caricature artist work.</p>
+
+      <div id="slideshow4" class="slideshow-container">
+        <div class="slides">
+          <img src="./Assets/kiosk-1-attract.png" alt="Kiosk welcome screen reading Let the machine draw you">
+          <p class="caption"><i>The screen people walk up to</i></p>
+        </div>
+        <div class="slides">
+          <img src="./Assets/kiosk-2-style.png" alt="Style picker with chibi and cartoon example drawings">
+          <p class="caption"><i>Two styles, shown as examples</i></p>
+        </div>
+        <div class="slides">
+          <img src="./Assets/kiosk-3-capture.png" alt="Camera viewfinder with an oval framing guide">
+          <p class="caption"><i>The oval is not decoration: the pipeline wants head and shoulders on a plain background</i></p>
+        </div>
+        <div class="slides">
+          <img src="./Assets/kiosk-4-generating.png" alt="Generating your sketch screen with a spinner">
+          <p class="caption"><i>About half a minute while the drawing is generated</i></p>
+        </div>
+        <div class="slides">
+          <img src="./Assets/kiosk-5-queued.png" alt="Queue screen showing ticket number 7">
+          <p class="caption"><i>The ticket number is also the folder number on the server, so it never repeats</i></p>
+        </div>
+
+        <a class="prev" onclick="plusSlides(-1, 'slideshow4')">&#10094;</a>
+        <a class="next" onclick="plusSlides(1, 'slideshow4')">&#10095;</a>
+      </div>
+
+      <h3>The operator console</h3>
+
+      <p>This is the other half, and it only opens on the laptop itself. It holds the connection to the plotter, shows the queue with a preview of every job, and lets the operator pick a free space on the paper and draw. The preview is the <i>pen route</i> rather than the line art, with the stroke count and an estimated time, so a drawing that would take twenty minutes gets caught before it starts instead of eight minutes in.</p>
+
+      <p>The grid at the bottom left is the sheet: six drawings fit on one page, with a 20 mm gap so they can be cut apart afterwards. Clicking a free cell jogs the machine there, and whatever position the head is in when a job starts becomes that drawing's origin.</p>
+
+      <img src="./Assets/console.png" alt="The operator console: machine controls, job queue, sheet grid and pen-route preview">
+      <p class="caption"><i>The operator console. The queue here is running on sample drawings rather than real visitors</i></p>
+
+      <h3>Firmware</h3>
+
+      <p>The firmware did not change much to make this possible. The main change was connectivity: the board used to run as an <b>access point</b>, hosting its own <code>esp-captive</code> network at <code>192.168.4.1</code> that you joined directly. Now it runs as a <b>station</b>, joining the same WiFi network as the laptop, and announces itself over mDNS as <code>plotter.local</code> so nothing has to know its IP address.</p>
+
+      <p>That change is what makes the whole thing possible. The first step of the pipeline calls the OpenAI API, so the laptop needs internet at the same time as it needs to talk to the machine — and on the board's own access point there is no internet at all. If the network is missing at boot it falls back to the old access point, so the machine is never unreachable.</p>
+
+      <p>The other changes were small: the board now reports over the WebSocket how a job ended, so the console knows when a drawing is finished instead of waiting for someone to click a button, and the bed size constants were corrected to the real measured travel.</p>
+
     </section>
   </body>
 
