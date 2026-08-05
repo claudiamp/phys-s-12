@@ -29,7 +29,6 @@ class MotionSensor {
       bool current = digitalRead(_pin) == HIGH;
 
       if (!ready()) {
-        _triggered = current;
         return false;
       }
 
