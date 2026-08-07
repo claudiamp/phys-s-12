@@ -189,7 +189,9 @@ img:has(+ .caption) {
   min-width: 0;
 }
 
-.slides img, .slides video {
+/* iframe included too, or a Fusion embed keeps the full media width from the
+   global rule and spills out of a half-width slide, under the arrows. */
+.slides img, .slides video, .slides iframe {
   width: 100%;
 }
 

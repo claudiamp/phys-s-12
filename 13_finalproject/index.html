@@ -58,13 +58,26 @@
 
       <p>The final encasing was made with a combination of wood laser cutting (for the main body), laser-cut acrylic (for the pillbox and decoration), and 3D printing (for the PIR shield, reed switch, and the housing and bottom lid for the protoboard).</p>
 
-      <iframe src="https://myg348891.autodesk360.com/shares/public/SH28cd1QT2badd0ea72bb4032a1d95a7d68d?mode=embed" width="1024" height="768" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"  frameborder="0"></iframe>
+      <div id="slideshow2" class="slideshow-container">
+        <div class="slides">      
+          <iframe src="https://myg348891.autodesk360.com/shares/public/SH28cd1QT2badd0ea72bb4032a1d95a7d68d?mode=embed" width="1024" height="768" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"  frameborder="0"></iframe>
+          <p class="caption"><i>Main Encasing</i></p>
+        </div>
+        <div class="slides">
+          <iframe src="https://myg348891.autodesk360.com/shares/public/SH28cd1QT2badd0ea72b7e2263ad87a22616?mode=embed" width="1024" height="768" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"  frameborder="0"></iframe>
+          <p class="caption"><i>PIR Shield</i></p>
+        </div>
+        <a class="prev" onclick="plusSlides(-1, 'slideshow2')">&#10094;</a>
+        <a class="next" onclick="plusSlides(1, 'slideshow2')">&#10095;</a>
+      </div>
+
+      <p><a href=".Assets/memo_faceplate_parts.dfx">Download Memo DFX Faceplate parts</a></p>
       
       <h3>Building Process</h3>
 
       <p>These are some photos of the building process for the encasing</p>
 
-      <div id="slideshow2" class="slideshow-container">
+      <div id="slideshow3" class="slideshow-container">
         <div class="slides">
           <video controls>
             <source src="./Assets/pillbox.mp4" type="video/mp4">
@@ -89,8 +102,8 @@
           <img src="./Assets/soldered-protoboard.jpeg" alt="">
           <p class="caption"><i>Soldered protoboard</i></p>
         </div>
-        <a class="prev" onclick="plusSlides(-1, 'slideshow2')">&#10094;</a>
-        <a class="next" onclick="plusSlides(1, 'slideshow2')">&#10095;</a>
+        <a class="prev" onclick="plusSlides(-1, 'slideshow3')">&#10094;</a>
+        <a class="next" onclick="plusSlides(1, 'slideshow3')">&#10095;</a>
       </div>
 
       <h2>App</h2>
@@ -99,7 +112,7 @@
 
       <p>The app is built with React Native, and the backend is serverless using AWS SAM. You can see the code for the project <a href="https://github.com/claudiamp/phys-s-12/tree/main/13_finalproject/src" target="_blank">here</a>.</p>
 
-      <div id="slideshow3" class="slideshow-container half-width">
+      <div id="slideshow4" class="slideshow-container half-width">
         <div class="slides">
           <img src="./Assets/app1.jpeg" alt="">
           <p class="caption"><i>Calendar view with checkmarks</i></p>
@@ -112,8 +125,8 @@
           <img src="./Assets/app3.jpeg" alt="">
           <p class="caption"><i>Push notification sent 1 hour after the pillbox is opened</i></p>
         </div>
-        <a class="prev" onclick="plusSlides(-1, 'slideshow3')">&#10094;</a>
-        <a class="next" onclick="plusSlides(1, 'slideshow3')">&#10095;</a>
+        <a class="prev" onclick="plusSlides(-1, 'slideshow4')">&#10094;</a>
+        <a class="next" onclick="plusSlides(1, 'slideshow4')">&#10095;</a>
       </div>
 
       <h3>AWS Architecture (App)</h3>
