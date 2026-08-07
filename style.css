@@ -171,19 +171,22 @@ img:has(+ .caption) {
 
 /* Slideshow */
 
+/* A flex row of [prev] [slide] [next], so the arrows sit beside the image
+   instead of on top of it. */
 .slideshow-container {
-  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   align-self: center;
-  overflow: hidden;
 }
 
 /* Pin the slide to the media width so a long caption can't stretch the
-   container and push the arrows away from the image. */
+   container and push the arrows away from the image. min-width lets the
+   slide shrink instead of overflowing once the arrows take their share. */
 .slides {
   display: none;
   width: clamp(20rem, 45vw, 160rem);
-  margin-left: auto;
-  margin-right: auto;
+  min-width: 0;
 }
 
 .slides img, .slides video {
@@ -195,10 +198,8 @@ img:has(+ .caption) {
 }
 
 .prev, .next {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-100%);
-  padding: 0vh 2vw;
+  flex: none;
+  padding: 0 1.5vw;
 
   color: var(--accent-color);
   cursor: pointer;
@@ -207,14 +208,10 @@ img:has(+ .caption) {
 
   font-style: var(--mono-font-family);
   font-size: clamp(2rem, 3vw, 100rem);
-  filter: invert(1);
-  mix-blend-mode: difference;
-
-  display: flex;
-  align-items: center;
 }
 
-.next { right: 0; }
+/* The markup puts prev after the slides, so pull it back to the front. */
+.prev { order: -1; }
 
 /* Blog */
 
@@ -394,8 +391,6 @@ footer a {
 /* App slideshow: half the default media width, kept centered */
 .slideshow-container.half-width .slides {
   width: clamp(10rem, 22.5vw, 80rem);
-  margin-left: auto;
-  margin-right: auto;
 }
 .slideshow-container.half-width .slides img {
   width: 100%;

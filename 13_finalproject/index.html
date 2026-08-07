@@ -26,19 +26,1032 @@
 
       <h2>Video</h2>
 
-          <video controls>
-            <source src="./Assets/memo.mp4" type="video/mp4">
-          </video>
+      <video controls>
+        <source src="./Assets/memo.mp4" type="video/mp4">
+      </video>
+
+      <h2>Images</h2>
+
+      <div id="slideshow1" class="slideshow-container half-width">
+        <div class="slides">
+          <img src="./Assets/memo1.jpg" alt="">
+        </div>
+        <div class="slides">
+          <img src="./Assets/memo2.jpg" alt="">
+        </div>
+        <div class="slides">
+          <img src="./Assets/memo3.jpg" alt="">
+        </div>
+        <a class="prev" onclick="plusSlides(-1, 'slideshow1')">&#10094;</a>
+        <a class="next" onclick="plusSlides(1, 'slideshow1')">&#10095;</a>
+      </div>
 
       <h2>What it does</h2>
 
       <p>Memo is a companion for my morning medication routine. During my wake-up hours, it detects my movement with the PIR sensor and plays a spoken reminder to take my pill. When I open the pillbox, it detects the lid opening with a magnetic reed switch, plays a congratulations message, and sends a message to the app to record that I took my medication. One hour later, I get a notification on my phone letting me know it's okay to eat.</p>
 
-      <p>It also has a capacitive touch pad hidden behind the wood panel, so petting Memo wakes it up and it greets you with one of four voice clips picked at random. The eyes are two 8x8 LED matrices that blink, look around, get happy, fall asleep, and show an X when the WiFi drops.</p>
+      <p>It also has a capacitive touch pad hidden inside its head, so petting Memo wakes it up and it greets you with one of four voice clips picked at random. The eyes are two 8x8 LED matrices that blink, look around, get happy, fall asleep, and show an X when the WiFi drops.</p>
 
-      <p>So in total it has three inputs (a reed switch, a PIR sensor and a capacitive touch pad) and two outputs (the LED matrix eyes and a speaker).</p>
+      <p>So in total it has three inputs (a reed switch, a PIR sensor, and a capacitive touch pad) and two outputs (the LED matrix eyes and a speaker).</p>
 
-      <p></p>
+      <h2>Encasing</h2>
+
+      <p>The final encasing was made with a combination of wood laser cutting (for the main body), laser-cut acrylic (for the pillbox and decoration), and 3D printing (for the PIR shield, reed switch, and the housing and bottom lid for the protoboard).</p>
+
+      <iframe src="https://myg348891.autodesk360.com/shares/public/SH28cd1QT2badd0ea72bb4032a1d95a7d68d?mode=embed" width="1024" height="768" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"  frameborder="0"></iframe>
+      
+      <h3>Building Process</h3>
+
+      <p>These are some photos of the building process for the encasing</p>
+
+      <div id="slideshow2" class="slideshow-container">
+        <div class="slides">
+          <video controls>
+            <source src="./Assets/pillbox.mp4" type="video/mp4">
+          </video>
+          <p class="caption"><i>The laser-cut acrylic pillbox and its lids</i></p>
+        </div>
+        <div class="slides">
+          <video controls>
+            <source src="./Assets/protoboard-housing.mp4" type="video/mp4">
+          </video>
+          <p class="caption"><i>The 3D-printed housing for the protoboard, closed with its bottom lid</i></p>
+        </div>
+        <div class="slides">
+          <img src="./Assets/laser-cut-memo.jpeg" alt="">
+          <p class="caption"><i>Memo's body panels on the laser cutter bed</i></p>
+        </div>
+        <div class="slides">
+          <img src="./Assets/memo-assembled.jpeg" alt="">
+          <p class="caption"><i>The assembled body with the acrylic pillbox in front</i></p>
+        </div>
+        <a class="prev" onclick="plusSlides(-1, 'slideshow2')">&#10094;</a>
+        <a class="next" onclick="plusSlides(1, 'slideshow2')">&#10095;</a>
+      </div>
+
+      <h2>App</h2>
+
+      <p>When the pillbox is opened, a message is sent through MQTT to the app backend and stored. One hour later, the app sends a push notification.</p>
+
+      <p>The app is built with React Native, and the backend is serverless using AWS SAM. You can see the code for the project <a href="https://github.com/claudiamp/phys-s-12/tree/main/13_finalproject/src" target="_blank">here</a>.</p>
+
+      <div id="slideshow3" class="slideshow-container half-width">
+        <div class="slides">
+          <img src="./Assets/app1.jpeg" alt="">
+          <p class="caption"><i>Calendar view with checkmarks</i></p>
+        </div>
+        <div class="slides">
+          <img src="./Assets/app2.jpeg" alt="">
+          <p class="caption"><i>History view with the times medication was taken</i></p>
+        </div>
+        <div class="slides">
+          <img src="./Assets/app3.jpeg" alt="">
+          <p class="caption"><i>Push notification sent 1 hour after the pillbox is opened</i></p>
+        </div>
+        <a class="prev" onclick="plusSlides(-1, 'slideshow3')">&#10094;</a>
+        <a class="next" onclick="plusSlides(1, 'slideshow3')">&#10095;</a>
+      </div>
+
+      <h3>AWS Architecture (App)</h3>
+
+      <p>Here is the architecture of the app on AWS.</p>
+
+      <img src="./Assets/aws-architecture.png" alt="">
+
+      <p>When the user opens the pillbox, a message is sent to AWS IoT Core through the MQTT protocol. There is a rule configured to route that event to the IngestFunction Lambda. That Lambda records the time of the event in a DynamoDB table and triggers the ReminderStateMachine. The Step Function waits for an hour and then triggers the NotifyFunction, which sends a push notification to the app. The app communicates with the backend through an API Gateway connected to the PillboxApi Lambda, which gets the information from DynamoDB for the calendar and history views.</p>
+
+      <h2>Schematics</h2>
+
+      <p>Here are the schematics of the electronics.</p>
+
+      <img src="./Assets/Schematic.png" alt="">      
+
+      <h2>Firmware</h2>
+
+      <p>Here is the final code for the project. The voice was generated with <a href="http://elevenlabs.io/" target="_blank">ElevenLabs</a>. To see the full audio data, click <a href="../13_finalproject/src/Arduino/AudioData.h">here</a>.</p>
+
+      <div class="tabs">
+        <div class="tab-buttons">
+          <button class="tab-btn active" data-tab="Memo.ino">Memo.ino</button>
+          <button class="tab-btn" data-tab="MotionSensor.h">MotionSensor.h</button>
+          <button class="tab-btn" data-tab="PillBox.h">PillBox.h</button>
+          <button class="tab-btn" data-tab="TouchPad.h">TouchPad.h</button>
+          <button class="tab-btn" data-tab="Eyes.h">Eyes.h</button>
+          <button class="tab-btn" data-tab="Speaker.h">Speaker.h</button>
+          <button class="tab-btn" data-tab="AudioData.h">AudioData.h</button>
+          <button class="tab-btn" data-tab="Secrets.h">Secrets.h</button>
+        </div>
+        <div class="tab-panel active" data-tab="Memo.ino">
+          <pre><code class="language-cpp">#include &lt;Arduino.h&gt;
+#include &lt;WiFi.h&gt;
+#include &lt;WiFiClientSecure.h&gt;
+#include &lt;MQTTClient.h&gt;
+#include &lt;ArduinoJson.h&gt;
+#include &lt;time.h&gt;
+#include &lt;esp_random.h&gt;
+#include &quot;MotionSensor.h&quot;
+#include &quot;PillBox.h&quot;
+#include &quot;Eyes.h&quot;
+#include &quot;Secrets.h&quot;
+#include &quot;Speaker.h&quot;
+#include &quot;AudioData.h&quot;
+#include &quot;TouchPad.h&quot;
+
+#define PIR_PIN        D0    // D0  - motion sensor (input)
+#define PILLBOX_PIN    D1    // D1  - reed/button (input)
+#define EYES_CLK_PIN   D8    // D8  - MAX7219 CLK
+#define EYES_CS_PIN    D9    // D9  - MAX7219 CS
+#define EYES_DATA_PIN  D10   // D10 - MAX7219 DIN
+#define I2S_BCLK_PIN   D2    // D2 (GPIO3) - MAX98357A BCLK
+#define I2S_LRC_PIN    D3    // D3 (GPIO4) - MAX98357A LRC
+#define I2S_DOUT_PIN   D4    // D4 (GPIO5) - MAX98357A DIN
+#define TOUCH_PIN      D5    // D5 (GPIO6 / TOUCH6) - capacitive touch pad (foil)
+#define TOUCH_DEBUG    0     // 1 = stream raw touch readings to Serial
+
+#define MAX_TRIGGERS_PER_DAY 3
+#define SLEEP_TIMEOUT_MS 10000
+#define ACTIVE_HOUR_START 6
+#define ACTIVE_HOUR_END 24
+
+const char* NTP_SERVER = &quot;pool.ntp.org&quot;;
+const long GMT_OFFSET = -5 * 3600;  // LIMA timezone
+const int DST_OFFSET = 0;
+
+// LOW while a pushbutton stands in for the reed switch (pressed = box opened).
+#define PILLBOX_OPEN_LEVEL HIGH
+
+MotionSensor pir(PIR_PIN);
+PillBox pillBox(PILLBOX_PIN, PILLBOX_OPEN_LEVEL, 150);
+Eyes eyes(EYES_DATA_PIN, EYES_CLK_PIN, EYES_CS_PIN);
+Speaker speaker(I2S_BCLK_PIN, I2S_LRC_PIN, I2S_DOUT_PIN, AUDIO_SAMPLE_RATE);
+TouchPad touchPad(TOUCH_PIN);
+
+// Greetings for the touch pad — one is picked at random on each touch, and
+// each one carries the face that matches its tone. &quot;yes?&quot; is a question, not
+// a greeting, so it gets the normal blinking eyes instead of the happy ones.
+struct Clip { const int16_t* data; uint32_t len; int expr; };
+const Clip TOUCH_CLIPS[] = {
+  { good_to_see_you_voice_data, good_to_see_you_voice_len, Eyes::HAPPY },
+  { hello_data,                 hello_len,                 Eyes::HAPPY },
+  { yes_question_data,          yes_question_len,          Eyes::OPEN  },
+  { hi_there_data,              hi_there_len,              Eyes::HAPPY },
+};
+const uint8_t TOUCH_CLIP_COUNT = sizeof(TOUCH_CLIPS) / sizeof(TOUCH_CLIPS[0]);
+uint8_t lastTouchClip = TOUCH_CLIP_COUNT;   // sentinel: nothing played yet
+
+WiFiClientSecure net;
+MQTTClient mqtt(256);
+
+int triggerCount = 0;
+int lastResetDay = -1;
+int wifiFailCount = 0;
+bool mqttSent = false;
+bool pirReadyPrinted = false;
+
+// WiFi diagnostics: the event handler records why we dropped, and loop()
+// publishes {reason, rssi, ...} to pillbox/diag after each reconnect — so we
+// can see what&#x27;s happening without a Serial cable attached.
+const char* AWS_IOT_DIAG_TOPIC = &quot;pillbox/diag&quot;;
+volatile int lastDisconnectReason = 0;
+bool diagPending = false;
+
+void onWiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
+  if (event == ARDUINO_EVENT_WIFI_STA_DISCONNECTED) {
+    lastDisconnectReason = info.wifi_sta_disconnected.reason;
+  }
+}
+
+int getHour() {
+  struct tm timeinfo;
+  if (!getLocalTime(&amp;timeinfo)) return -1;
+  return timeinfo.tm_hour;
+}
+
+int getDay() {
+  struct tm timeinfo;
+  if (!getLocalTime(&amp;timeinfo)) return -1;
+  return timeinfo.tm_yday;
+}
+
+bool isActiveHours() {
+  int hour = getHour();
+  if (hour &lt; 0) return false;
+  return hour &gt;= ACTIVE_HOUR_START &amp;&amp; hour &lt; ACTIVE_HOUR_END;
+}
+
+void resetDailyCounter() {
+  int today = getDay();
+  if (today &gt;= 0 &amp;&amp; today != lastResetDay) {
+    triggerCount = 0;
+    lastResetDay = today;
+    Serial.println(&quot;Daily trigger count reset&quot;);
+  }
+}
+
+void connectMQTT() {
+  Serial.print(&quot;Connecting to AWS IoT&quot;);
+  while (!mqtt.connect(AWS_IOT_CLIENT_ID)) {
+    if (WiFi.status() != WL_CONNECTED) {   // WiFi dropped mid-attempt: bail, let loop() recover
+      Serial.println(&quot; WiFi lost&quot;);
+      return;
+    }
+    Serial.print(&quot;.&quot;);
+    delay(500);
+  }
+  Serial.println(&quot; connected&quot;);
+}
+
+void sendPillboxOpened() {
+  JsonDocument doc;
+  doc[&quot;event&quot;] = &quot;pillbox_opened&quot;;
+  doc[&quot;device&quot;] = AWS_IOT_CLIENT_ID;
+
+  struct tm timeinfo;
+  if (getLocalTime(&amp;timeinfo)) {
+    char timestamp[25];
+    strftime(timestamp, sizeof(timestamp), &quot;%Y-%m-%dT%H:%M:%S&quot;, &amp;timeinfo);
+    doc[&quot;timestamp&quot;] = timestamp;
+  }
+
+  char payload[256];
+  serializeJson(doc, payload);
+  mqtt.publish(AWS_IOT_TOPIC, payload);
+  Serial.print(&quot;MQTT sent: &quot;);
+  Serial.println(payload);
+}
+
+void sendDiag() {
+  JsonDocument doc;
+  doc[&quot;event&quot;] = &quot;reconnected&quot;;
+  doc[&quot;device&quot;] = AWS_IOT_CLIENT_ID;
+  doc[&quot;reason&quot;] = lastDisconnectReason;   // esp_wifi disconnect reason code
+  doc[&quot;rssi&quot;] = WiFi.RSSI();              // signal strength after reconnect (dBm)
+
+  struct tm timeinfo;
+  if (getLocalTime(&amp;timeinfo)) {
+    char timestamp[25];
+    strftime(timestamp, sizeof(timestamp), &quot;%Y-%m-%dT%H:%M:%S&quot;, &amp;timeinfo);
+    doc[&quot;timestamp&quot;] = timestamp;
+  }
+
+  char payload[256];
+  serializeJson(doc, payload);
+  mqtt.publish(AWS_IOT_DIAG_TOPIC, payload);
+  Serial.print(&quot;Diag sent: &quot;);
+  Serial.println(payload);
+}
+
+void playRandomTouchClip() {
+  uint8_t i;
+  do {
+    i = esp_random() % TOUCH_CLIP_COUNT;
+  } while (i == lastTouchClip);
+  lastTouchClip = i;
+
+  Serial.print(&quot;touch clip #&quot;);
+  Serial.println(i);
+  eyes.setExpression(TOUCH_CLIPS[i].expr);   // set before play() — play() blocks
+  speaker.play(TOUCH_CLIPS[i].data, TOUCH_CLIPS[i].len);
+}
+
+void setup() {
+  Serial.begin(115200);
+  pir.begin();
+  pillBox.begin();
+  eyes.begin();
+  speaker.begin();
+  speaker.setVolume(0.3); // between 0 and 1
+  touchPad.begin();       // learns the untouched baseline — hands off the foil here
+  Serial.print(&quot;TouchPad baseline=&quot;);
+  Serial.print(touchPad.baseline());
+  Serial.print(&quot; threshold=&quot;);
+  Serial.println(touchPad.threshold());
+  if (touchPad.baseline() == 0) {
+    Serial.println(&quot;TouchPad: baseline 0 — pin is not touch-capable or not wired&quot;);
+  }
+
+  eyes.setSleepTimeout(SLEEP_TIMEOUT_MS);
+  eyes.setExpression(Eyes::THINKING);
+
+  WiFi.mode(WIFI_STA);
+  WiFi.onEvent(onWiFiEvent);   // capture disconnect reason codes
+  Serial.print(&quot;ESP32 MAC Address: &quot;);
+  Serial.println(WiFi.macAddress());
+  Serial.print(&quot;Connecting to \&quot;&quot;);
+  Serial.print(WIFI_SSID);
+  Serial.print(&quot;\&quot;&quot;);
+
+  WiFi.begin(WIFI_SSID);
+
+  int attempts = 0;
+  while (WiFi.status() != WL_CONNECTED &amp;&amp; attempts &lt; 20) {
+    eyes.update();
+    delay(500);
+    Serial.print(&quot;.&quot;);
+    attempts++;
+  }
+  Serial.print(&quot; [status=&quot;);
+  Serial.print(WiFi.status());   // 3=connected, 6=no SSID found, 4=connect fail
+  Serial.println(&quot;]&quot;);
+
+  // TLS + MQTT configuration: no network I/O, so it&#x27;s safe even if WiFi is
+  // down, and it only needs to run once. loop() drives the actual connecting.
+  net.setCACert(AWS_CERT_CA);
+  net.setCertificate(AWS_CERT_CRT);
+  net.setPrivateKey(AWS_CERT_PRIVATE);
+  mqtt.begin(AWS_IOT_ENDPOINT, 8883, net);
+
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println(&quot; failed&quot;);
+    eyes.setExpression(Eyes::ERROR);
+  } else {
+    Serial.println(&quot; connected&quot;);
+    eyes.setExpression(Eyes::OPEN);
+    WiFi.setSleep(false);   // keep the radio awake — avoids intermittent drops
+    configTime(GMT_OFFSET, DST_OFFSET, NTP_SERVER);
+    Serial.println(&quot;NTP time synced&quot;);
+
+    connectMQTT();
+    speaker.play(hi_there_data, hi_there_len);
+  }
+
+}
+
+void loop() {
+  if (WiFi.status() != WL_CONNECTED) {
+    wifiFailCount++;
+    if (wifiFailCount &gt; 60) {
+      ESP.restart();
+    }
+    eyes.setExpression(Eyes::ERROR);
+    eyes.update();
+    WiFi.reconnect();
+    delay(5000);
+    return;
+  }
+
+  // Just recovered from a WiFi drop: clear the ERROR face (it never sleeps on
+  // its own) so the normal open/sleep cycle resumes, and queue a diag report.
+  if (wifiFailCount &gt; 0) {
+    eyes.setExpression(Eyes::OPEN);
+    diagPending = true;
+  }
+  wifiFailCount = 0;
+
+  if (!mqtt.connected()) {
+    connectMQTT();
+  }
+  mqtt.loop();
+
+  // Report the reconnect (reason + RSSI) once MQTT is back up.
+  if (diagPending &amp;&amp; mqtt.connected()) {
+    sendDiag();
+    diagPending = false;
+  }
+
+  if (!pirReadyPrinted &amp;&amp; pir.ready()) {
+    pirReadyPrinted = true;
+    Serial.println(&quot;PIR ready — detecting movement&quot;);
+  }
+
+  resetDailyCounter();
+
+  pillBox.update();
+
+  bool motion = pir.detected();
+  bool open = pillBox.justOpened();
+  bool touch = touchPad.touched();   // rising edge, consumed here
+
+#if TOUCH_DEBUG
+  // Stream readings while touching the foil for debugging.
+  static unsigned long lastTouchPrint = 0;
+  if (millis() - lastTouchPrint &gt; 250) {
+    lastTouchPrint = millis();
+    Serial.print(&quot;touch raw=&quot;);
+    Serial.print(touchPad.raw());
+    Serial.print(&quot; base=&quot;);
+    Serial.print(touchPad.baseline());
+    Serial.print(&quot; fires_above=&quot;);
+    Serial.println(touchPad.threshold());
+  }
+#endif
+
+  // --- Touch pad: petting the robot wakes it up and it greets you ---
+  // The face comes from the clip that gets picked, so don&#x27;t set one here.
+  if (touch) {
+    Serial.println(&quot;touch detected&quot;);
+    playRandomTouchClip();
+  }
+
+  // --- PillBox opened: happy face + MQTT ---
+  if (open) {
+    eyes.setExpression(Eyes::HAPPY);
+    Serial.println(&quot;pillbox opened&quot;);
+    if (!mqttSent) {
+      sendPillboxOpened();
+      Serial.println(&quot;MQTT: pillbox opened&quot;);
+      speaker.play(good_job_data, good_job_len);
+      mqttSent = true;
+    }
+  } else {
+    mqttSent = false;
+
+    // --- Motion detected (max 3x/day, only during active hours) ---
+    if (motion &amp;&amp; triggerCount &lt; MAX_TRIGGERS_PER_DAY &amp;&amp; isActiveHours()) {
+      triggerCount++;
+      eyes.setExpression(Eyes::OPEN);
+      if (triggerCount == 1) {
+        speaker.play(first_message_data, first_message_len);
+      } else {
+        speaker.play(follow_up_message_data, follow_up_message_len);
+      }
+      Serial.print(&quot;Motion trigger #&quot;);
+      Serial.println(triggerCount);
+    }
+  }
+
+  eyes.update();
+}</code></pre>
+        </div>
+        <div class="tab-panel" data-tab="MotionSensor.h">
+          <pre><code class="language-cpp">#pragma once
+#include &lt;Arduino.h&gt;
+
+class MotionSensor {
+  private:
+    int _pin;
+    bool _triggered;
+    unsigned long _readyAt;
+    unsigned long _warmupMs;
+
+  public:
+    MotionSensor(int pin, unsigned long warmupMs = 60000) {
+      _pin = pin;
+      _triggered = false;
+      _readyAt = 0;
+      _warmupMs = warmupMs;
+    }
+
+    void begin() {
+      pinMode(_pin, INPUT);
+      _readyAt = millis() + _warmupMs;
+    }
+
+    bool ready() const {
+      return (long)(millis() - _readyAt) &gt;= 0;
+    }
+
+    bool detected() {
+      bool current = digitalRead(_pin) == HIGH;
+
+      if (!ready()) {
+        return false;
+      }
+
+      if (current &amp;&amp; !_triggered) {
+        _triggered = true;
+        return true;
+      }
+
+      if (!current) {
+        _triggered = false;
+      }
+
+      return false;
+    }
+};</code></pre>
+        </div>
+        <div class="tab-panel" data-tab="PillBox.h">
+          <pre><code class="language-cpp">#pragma once
+#include &lt;Arduino.h&gt;
+
+class PillBox {
+  private:
+    int _pin;
+    bool _openLevel;
+    bool _reading;      // raw last reading (for debounce timing)
+    bool _state;        // debounced current state
+    bool _lastState;    // debounced state on previous update
+    unsigned long _lastDebounceTime;
+    unsigned long _debounceDelay;
+
+  public:
+    PillBox(int pin, bool openLevel = HIGH, unsigned long debounceDelay = 50) {
+      _pin = pin;
+      _openLevel = openLevel;
+      _debounceDelay = debounceDelay;
+    }
+
+    void begin() {
+      pinMode(_pin, INPUT_PULLUP);
+      _state = digitalRead(_pin);
+      _lastState = _state;
+      _reading = _state;
+      _lastDebounceTime = millis();
+    }
+
+    void update() {
+      bool r = digitalRead(_pin);
+      if (r != _reading) {
+        _reading = r;
+        _lastDebounceTime = millis();
+      }
+      _lastState = _state;
+      if (millis() - _lastDebounceTime &gt; _debounceDelay) {
+        _state = _reading;
+      }
+    }
+
+    bool anyOpen()    { return _state == _openLevel; }                          // true WHILE open
+    bool justOpened() { return _state == _openLevel &amp;&amp; _lastState != _openLevel; } // true for ONE loop
+    bool justClosed() { return _state != _openLevel &amp;&amp; _lastState == _openLevel; }
+};</code></pre>
+        </div>
+        <div class="tab-panel" data-tab="TouchPad.h">
+          <pre><code class="language-cpp">#pragma once
+#include &lt;Arduino.h&gt;
+
+class TouchPad {
+  private:
+    uint8_t  _pin;
+    uint32_t _baseline;   // idle level, slowly re-learned while released
+    uint8_t  _pct;        // touch when the reading sits _pct% above baseline
+    bool     _touching;
+
+    // Halfway back down to baseline — releases cleanly without chattering.
+    uint32_t releaseLevel() { return (_baseline + threshold()) / 2; }
+
+  public:
+    // Through a wood panel the swing is small — idle ~31.8k, touched ~42k, so
+    // roughly +32%. 15% sits between idle noise and a real touch with margin
+    // on both sides. Raise it if it self-triggers, lower it if it misses taps.
+    TouchPad(uint8_t pin, uint8_t pct = 15) {
+      _pin = pin;
+      _pct = pct;
+      _baseline = 0;
+      _touching = false;
+    }
+
+    // IMPORTANT: don&#x27;t touch the foil during begin() — this learns the baseline.
+    void begin() {
+      // The touch peripheral reads high and erratic for the first ~150ms after
+      // boot. Averaging those in is what wrecks the baseline, so throw them out.
+      for (uint8_t i = 0; i &lt; 16; i++) { touchRead(_pin); delay(10); }
+
+      // Idle is the *floor* of the readings, never the average: noise and any
+      // stray proximity only ever push the value up, so the minimum is truth.
+      _baseline = touchRead(_pin);
+      for (uint8_t i = 0; i &lt; 48; i++) {
+        uint32_t r = touchRead(_pin);
+        if (r &lt; _baseline) _baseline = r;
+        delay(5);
+      }
+    }
+
+    uint32_t raw()       { return touchRead(_pin); }
+    uint32_t baseline()  { return _baseline; }
+    uint32_t threshold() { return _baseline + (_baseline * _pct) / 100; }
+
+    // Rising edge: true once per touch. Consumes the edge.
+    bool touched() {
+      uint32_t r = touchRead(_pin);
+      bool current = _touching ? (r &gt; releaseLevel()) : (r &gt; threshold());
+
+      // Creep the baseline toward the idle level, one count at a time, and
+      // ONLY while released — so humidity and temperature drift in the wood
+      // can&#x27;t slowly walk us past the threshold, but a held touch can&#x27;t
+      // teach the baseline that &quot;touched&quot; is the new normal either.
+      if (!current) {
+        if (r &gt; _baseline) _baseline++;
+        else if (r &lt; _baseline) _baseline--;
+      }
+
+      if (current &amp;&amp; !_touching) { _touching = true; return true; }
+      if (!current) _touching = false;
+      return false;
+    }
+};</code></pre>
+        </div>
+        <div class="tab-panel" data-tab="Eyes.h">
+          <pre><code class="language-cpp">#pragma once
+#include &lt;Arduino.h&gt;
+#include &lt;MD_MAX72xx.h&gt;
+
+#define HARDWARE_TYPE MD_MAX72XX::PAROLA_HW
+#define MAX_DEVICES 2
+
+class Eyes {
+  private:
+    MD_MAX72XX _mx;
+
+    unsigned long _lastUpdate;
+    unsigned long _wakeTime;
+    unsigned long _sleepTimeout;
+    unsigned long _interval;
+    int _frame;
+    unsigned int _expression;
+    unsigned int _prevExpression;
+
+    byte _openEye[8] = {
+      0b00111100,
+      0b01000010,
+      0b10000001,
+      0b10000001,
+      0b10000001,
+      0b10000001,
+      0b01000010,
+      0b00111100
+    };
+
+    byte _closed[8] = {
+      0b00000000,
+      0b00000000,
+      0b00000000,
+      0b01111110,
+      0b01111110,
+      0b00000000,
+      0b00000000,
+      0b00000000
+    };
+
+    byte _happy[8] = {
+      0b00000000,
+      0b00000000,
+      0b00000000,
+      0b10000001,
+      0b01000010,
+      0b00100100,
+      0b00011000,
+      0b00000000
+    };
+
+    byte _lookDot[8] = {
+      0b00000000,
+      0b00000000,
+      0b00000000,
+      0b00011000,
+      0b00011000,
+      0b00000000,
+      0b00000000,
+      0b00000000
+    };
+
+    byte _xMark[8] = {
+      0b10000001,
+      0b01000010,
+      0b00100100,
+      0b00011000,
+      0b00011000,
+      0b00100100,
+      0b01000010,
+      0b10000001
+    };
+
+    byte _letterZ[8] = {
+      0b00000000,
+      0b01111110,
+      0b01000000,
+      0b00100000,
+      0b00010000,
+      0b00001000,
+      0b00000100,
+      0b01111110
+    };
+
+    void drawEye(int module, byte bmp[8]) {
+      for (int r = 0; r &lt; 8; r++) _mx.setRow(module, r, bmp[r]);
+    }
+
+    void both(byte bmp[8]) {
+      drawEye(0, bmp);
+      drawEye(1, bmp);
+    }
+
+    // Draws the current frame for the current expression and sets the next
+    // interval. Shared by update() (on a timer) and setExpression() (instantly).
+    void renderFrame() {
+      switch (_expression) {
+        case OFF:
+          _mx.clear();
+          _interval = 1000;
+          break;
+
+        case OPEN:
+          if (_frame == 0) {
+            both(_openEye);
+            _interval = 2000;
+          } else {
+            both(_closed);
+            _interval = 150;
+          }
+          _frame = (_frame + 1) % 2;
+          break;
+
+        case HAPPY:
+          both(_happy);
+          _interval = 500;
+          break;
+
+        case THINKING:
+          if (_frame == 0) {
+            drawEye(0, _openEye); drawEye(1, _lookDot);
+            _interval = 400;
+          } else {
+            drawEye(0, _lookDot); drawEye(1, _openEye);
+            _interval = 400;
+          }
+          _frame = (_frame + 1) % 2;
+          break;
+
+        case ERROR:
+          if (_frame == 0) {
+            both(_xMark);
+            _interval = 500;
+          } else {
+            _mx.clear();
+            _interval = 500;
+          }
+          _frame = (_frame + 1) % 2;
+          break;
+
+        case SLEEPING:
+          if (_frame == 0) {
+            both(_closed);
+            _interval = 800;
+          } else {
+            both(_letterZ);
+            _interval = 900;
+          }
+          _frame = (_frame + 1) % 2;
+          break;
+      }
+    }
+
+  public:
+    static const int OFF = 0;
+    static const int OPEN = 1;
+    static const int HAPPY = 2;
+    static const int SLEEPING = 3;
+    static const int THINKING = 4;
+    static const int ERROR = 5;
+
+    Eyes(int dataPin, int clkPin, int csPin)
+      : _mx(HARDWARE_TYPE, dataPin, clkPin, csPin, MAX_DEVICES) {
+      _frame = 0;
+      _interval = 2000;
+      _lastUpdate = 0;
+      _expression = OFF;
+      _prevExpression = 255;
+      _wakeTime = 0;
+      _sleepTimeout = 0;
+    }
+
+    void begin() {
+      _mx.begin();
+      _mx.control(MD_MAX72XX::INTENSITY, 4);
+      _mx.clear();
+    }
+
+    void setSleepTimeout(unsigned long timeout) {
+      _sleepTimeout = timeout;
+    }
+
+    void setExpression(unsigned int expr) {
+      if (expr == _expression) return;
+      _expression = expr;
+      _prevExpression = expr;
+      _frame = 0;
+      _lastUpdate = millis();
+      if (expr != OFF &amp;&amp; expr != SLEEPING &amp;&amp; expr != ERROR) {
+        _wakeTime = millis();
+      }
+      renderFrame();   // draw the first frame NOW, so the face shows immediately
+    }
+
+    void update() {
+      if (_wakeTime &gt; 0 &amp;&amp; _expression != ERROR &amp;&amp; _expression != THINKING) {
+        unsigned long elapsed = millis() - _wakeTime;
+        if (elapsed &gt;= _sleepTimeout &amp;&amp; elapsed &lt; _sleepTimeout + 3000) {
+          setExpression(SLEEPING);
+        } else if (elapsed &gt;= _sleepTimeout + 3000) {
+          setExpression(OFF);
+          _wakeTime = 0;
+        }
+      }
+
+      if (millis() - _lastUpdate &lt; _interval) return;
+      _lastUpdate = millis();
+
+      renderFrame();
+    }
+};</code></pre>
+        </div>
+        <div class="tab-panel" data-tab="Speaker.h">
+          <pre><code class="language-cpp">#pragma once
+#include &lt;Arduino.h&gt;
+#include &quot;driver/i2s.h&quot;
+
+// Drives a MAX98357A I2S amplifier.
+// Plays 16-bit signed PCM clips (mono) embedded in flash — see audio_data.h.
+//
+// Optional: pass sdPin to control the amp&#x27;s SD (shutdown) pin. When set, the
+// amp is muted except during playback, which removes idle hiss and the little
+// bursts of interference the WiFi radio injects between clips.
+// Wire the amp&#x27;s SD pin to that GPIO and nothing else.
+class Speaker {
+  private:
+    int _bclkPin;
+    int _lrcPin;
+    int _doutPin;
+    int _sdPin;
+    uint32_t _sampleRate;
+    i2s_port_t _port;
+    float _volume;   // 0.0 (silent) .. 1.0 (full)
+
+  public:
+    Speaker(int bclkPin, int lrcPin, int doutPin,
+            uint32_t sampleRate = 16000, int sdPin = -1,
+            i2s_port_t port = I2S_NUM_0) {
+      _bclkPin = bclkPin;
+      _lrcPin = lrcPin;
+      _doutPin = doutPin;
+      _sdPin = sdPin;
+      _sampleRate = sampleRate;
+      _port = port;
+      _volume = 0.6f;
+    }
+
+    void begin() {
+      if (_sdPin &gt;= 0) {
+        pinMode(_sdPin, OUTPUT);
+        digitalWrite(_sdPin, LOW);   // start muted
+      }
+
+      i2s_config_t cfg = {
+        .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX),
+        .sample_rate = _sampleRate,
+        .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
+        .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
+        .communication_format = I2S_COMM_FORMAT_STAND_I2S,
+        .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
+        .dma_buf_count = 8,
+        .dma_buf_len = 512,
+        .use_apll = false,
+        .tx_desc_auto_clear = true,
+        .fixed_mclk = 0
+      };
+      i2s_driver_install(_port, &amp;cfg, 0, NULL);
+
+      i2s_pin_config_t pins = {
+        .mck_io_num = I2S_PIN_NO_CHANGE,
+        .bck_io_num = _bclkPin,
+        .ws_io_num = _lrcPin,
+        .data_out_num = _doutPin,
+        .data_in_num = I2S_PIN_NO_CHANGE
+      };
+      i2s_set_pin(_port, &amp;pins);
+      i2s_zero_dma_buffer(_port);
+    }
+
+    // 0.0 = silent, 1.0 = full scale.
+    void setVolume(float v) {
+      if (v &lt; 0.0f) v = 0.0f;
+      if (v &gt; 1.0f) v = 1.0f;
+      _volume = v;
+    }
+
+    // Blocking: unmutes the amp, plays the clip (with a short fade in/out to
+    // avoid start/stop pops), then mutes again.
+    void play(const int16_t* data, uint32_t numSamples) {
+      if (_sdPin &gt;= 0) {
+        digitalWrite(_sdPin, HIGH);
+        delay(5);
+      }
+
+      // ~8 ms fade at each end kills the click when the amp powers up/down.
+      uint32_t fade = _sampleRate / 125;
+      if (fade &gt; numSamples / 2) fade = numSamples / 2;
+
+      const size_t CHUNK = 512;
+      int16_t buf[CHUNK];
+      size_t bytesWritten;
+      uint32_t i = 0;
+      while (i &lt; numSamples) {
+        size_t n = (numSamples - i &lt; CHUNK) ? (numSamples - i) : CHUNK;
+        for (size_t j = 0; j &lt; n; j++) {
+          uint32_t idx = i + j;
+          float g = _volume;
+          if (fade &gt; 0) {
+            if (idx &lt; fade) {
+              g *= (float)idx / fade;                       // fade in
+            } else if (idx &gt;= numSamples - fade) {
+              g *= (float)(numSamples - idx) / fade;        // fade out
+            }
+          }
+          buf[j] = (int16_t)(data[idx] * g);
+        }
+        i2s_write(_port, buf, n * sizeof(int16_t), &amp;bytesWritten, portMAX_DELAY);
+        i += n;
+      }
+      i2s_zero_dma_buffer(_port);
+
+      if (_sdPin &gt;= 0) {
+        delay(5);                     // let the last samples flush out
+        digitalWrite(_sdPin, LOW);    // mute amp again -&gt; no idle hiss/interference
+      }
+    }
+};</code></pre>
+        </div>
+        <div class="tab-panel" data-tab="AudioData.h">
+          <pre><code class="language-cpp">// Auto-generated PCM audio for MAX98357A on ESP32
+// Format: 16-bit signed PCM, mono, 24000 Hz
+#pragma once
+#include &lt;stdint.h&gt;
+
+#define AUDIO_SAMPLE_RATE 24000
+
+// first_message.wav  (100938 samples, 4.21 s)
+const uint32_t first_message_len = 100938;
+const int16_t first_message_data[100938] = {
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  // ... (sample data truncated for the web page)
+};
+
+// follow_up_message.wav  (115984 samples, 4.83 s)
+const uint32_t follow_up_message_len = 115984;
+const int16_t follow_up_message_data[115984] = {
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  // ... (sample data truncated for the web page)
+};
+
+// good_job.wav  (93414 samples, 3.89 s)
+const uint32_t good_job_len = 93414;
+const int16_t good_job_data[93414] = {
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  // ... (sample data truncated for the web page)
+};
+
+// hi_there.wav  (20689 samples, 0.86 s)
+const uint32_t hi_there_len = 20689;
+const int16_t hi_there_data[20689] = {
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  // ... (sample data truncated for the web page)
+};
+
+// good_to_see_you_voice.mp3  (27585 samples, 1.15 s)
+const uint32_t good_to_see_you_voice_len = 27585;
+const int16_t good_to_see_you_voice_data[27585] = {
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  // ... (sample data truncated for the web page)
+};
+
+// hello.mp3  (23197 samples, 0.97 s)
+const uint32_t hello_len = 23197;
+const int16_t hello_data[23197] = {
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  // ... (sample data truncated for the web page)
+};
+
+// yes_question.mp3  (18808 samples, 0.78 s)
+const uint32_t yes_question_len = 18808;
+const int16_t yes_question_data[18808] = {
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  // ... (sample data truncated for the web page)
+};</code></pre>
+        </div>
+        <div class="tab-panel" data-tab="Secrets.h">
+          <pre><code class="language-cpp">#pragma once
+
+// --- WiFi ---
+const char* WIFI_SSID = &quot;YOUR_SSID&quot;;
+const char* WIFI_PASS = &quot;YOUR_PASSWORD&quot;;
+
+// --- AWS IoT ---
+const char* AWS_IOT_ENDPOINT = &quot;xxxxxx-ats.iot.us-east-1.amazonaws.com&quot;;
+const char* AWS_IOT_TOPIC = &quot;pillbox/opened&quot;;
+const char* AWS_IOT_CLIENT_ID = &quot;pillbox-esp32&quot;;
+
+// --- Certificates ---
+const char AWS_CERT_CA[] PROGMEM = R&quot;EOF(
+-----BEGIN CERTIFICATE-----
+PASTE YOUR AMAZON ROOT CA 1 HERE
+-----END CERTIFICATE-----
+)EOF&quot;;
+
+const char AWS_CERT_CRT[] PROGMEM = R&quot;EOF(
+-----BEGIN CERTIFICATE-----
+PASTE YOUR DEVICE CERTIFICATE HERE
+-----END CERTIFICATE-----
+)EOF&quot;;
+
+const char AWS_CERT_PRIVATE[] PROGMEM = R&quot;EOF(
+-----BEGIN RSA PRIVATE KEY-----
+PASTE YOUR PRIVATE KEY HERE
+-----END RSA PRIVATE KEY-----
+)EOF&quot;;</code></pre>
+        </div>
+      </div>
+
     </section>
   </body>
 
